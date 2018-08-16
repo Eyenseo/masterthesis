@@ -1,0 +1,51 @@
+%---------------------------------
+% Preamble
+%---------------------------------
+\input{preamble.tex}
+%---------------------------------
+% Document start
+%---------------------------------
+\begin{document}
+%---------------------------------
+% Titlepage
+%---------------------------------
+\Coverpage
+%---------------------------------
+% abstract
+%---------------------------------
+~\thispagestyle{empty}\newpage% Move both abstracts on the same page
+\setcounter{page}{2}
+\input{abstract}
+%---------------------------------
+% table of contents
+%---------------------------------
+{
+  \microtypesetup{protrusion=false} % disables protrusion locally in the document
+  \hypersetup{hidelinks}
+  \tableofcontents
+  \microtypesetup{protrusion=true} % disables protrusion locally in the document
+}
+\cleardoublepage
+
+\foreach \c in \InputOnly {%
+  \ifx\c\empty
+  \else
+    \input{\c}%
+  \fi
+}%
+\newpage
+
+%---------------------------------
+% Glossary with Acronyms
+%---------------------------------
+\printglossary
+%---------------------------------
+% Bibliography
+%---------------------------------
+\microtypesetup{protrusion=false} % disables protrusion locally in the document
+\begingroup
+% \sloppy % Use if text or urls are not breaking correctly
+\printbibliography[title={Literaturverzeichnis}, heading=bibintoc]
+\endgroup
+\microtypesetup{protrusion=true} % enabels protrusion locally in the document
+\end{document}

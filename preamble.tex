@@ -1,0 +1,394 @@
+%!TEX root = thesis.tex
+
+% Copyright 2018 Roland Jäger
+%
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+%
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.{numbers=noenddot}{scrbook}
+
+\documentclass[
+  a4paper,  % Standard format - only KOMAScript uses paper=a4 - https://tex.stackexchange.com/a/61044/9075
+  twoside,  % we are optimizing for both screen and two-side printing. So the page numbers will jump, but the content is configured to stay in the middle (by using the geometry package)
+  bibliography=totoc,
+  headsepline,
+  cleardoublepage=empty,
+  parskip=half,
+]{scrbook}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%---------------------------------
+% Special ordering
+%---------------------------------
+\usepackage[noTeX]{mmap}% Better text copy support
+\usepackage[scale=.9,ttdefault=true]{sourcecodepro}
+
+%---------------------------------
+% Language
+%---------------------------------
+\usepackage[T1]{fontenc} % utf8 <- produce real utf8 characters
+\usepackage[utf8]{inputenc} % utf8 <- accept utf8 input characters
+\usepackage{datetime}
+\usepackage[english]{babel}
+\usepackage{csquotes} % better quotes
+\usepackage[
+  backend=biber,
+  sortcites=true,
+  url=false,
+  doi=true,
+  eprint=false
+]{biblatex}
+
+\input{meta}
+
+%---------------------------------
+% Utility
+%---------------------------------
+\usepackage[colorlinks]{hyperref} % hyper ref "addon"
+\usepackage[all]{hypcap} % better linking/ref to floats
+\usepackage{scrhack} % patches outdated float package
+\usepackage{float} % better figure placement
+\usepackage[justification=centering,format=plain]{caption} % Caption setup
+\usepackage{amsmath} % Math stuff
+\usepackage{amsfonts} % Math stuff
+\usepackage{xspace} % for automagical spaces after commends
+\usepackage[math]{blindtext}
+\usepackage[automake,acronym,indexonlyfirst,nomain]{glossaries} % glossary and accronyms
+\usepackage{pgffor} % used to iterate over a list
+\usepackage{appendix}
+
+%---------------------------------
+% Style
+%---------------------------------
+\usepackage[automark]{scrlayer-scrpage}
+\usepackage[
+  left=3cm,right=3cm,top=2.5cm,bottom=2.5cm,
+  headsep=18pt,
+  footskip=30pt,
+  includehead,
+  includefoot
+]{geometry}
+\usepackage[
+  activate={%
+    true,%
+    nocompatibility%
+  }, % activate protrusion and expansion
+  final, % enable microtype; use "draft" to disable
+  tracking=true,%
+  kerning=true,%
+  spacing=true,%
+  factor=1100, % add 10% to the protrusion amount (default is 1000)
+  stretch=10, % reduce stretchability (default is 20/20)
+  shrink=10 % reduce shrinkability (default is 20/20)
+]{microtype} % Subliminal refinements towards typographical perfection - eg. Hypernation
+\usepackage{lastpage} % For page of pages
+\usepackage[svgnames,hyperref]{xcolor} % svg colors
+\usepackage[
+  language=english,
+  title={\MetaTitle{}},
+  author={\MetaAuthor{}},
+  type=master,
+  institute=iste,
+  course={Softwareengineering},
+  examiner={Prof.\ Dr.\ Erhard Plödereder},
+  supervisor={Dr.\ Timm Felden},
+  startdate={April 11, 2018},
+  enddate={Octobre 11, 2018},
+]{scientific-thesis-cover}
+
+%---------------------------------
+% Environment
+%---------------------------------
+\usepackage{longtable} % base for tabu (longtabu)
+\usepackage{tabu} % Good table environment - best?
+\usepackage{enumitem} % Improved enumerate/itemize/description env
+\usepackage{graphicx} % for graphics -> \includegraphics
+\usepackage{listings-rust}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONFIGURATIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%---------------------------------
+% Load input files to compile
+%---------------------------------
+\input{input}
+
+%---------------------------------
+% Image folders
+%---------------------------------
+\graphicspath{{./img}}
+
+%---------------------------------
+% Biographie
+%---------------------------------
+\addbibresource{lit.bib}
+
+%---------------------------------
+% Import the glossary
+%---------------------------------
+\input{glossary}
+
+%---------------------------------
+% Intex date format
+%---------------------------------
+\newdateformat{myInTextDateFormat}{%
+  \ordinaldate{\THEDAY}\ \monthname[\THEMONTH] \THEYEAR%
+}
+
+%---------------------------------
+% Normal Font for header and footer
+%---------------------------------
+\setkomafont{pageheadfoot}{\normalfont\sffamily}
+\setkomafont{pagenumber}{\normalfont}
+
+%---------------------------------
+% Less space between list items
+%---------------------------------
+\setlist{itemsep=.5em}
+\setlist{parsep=.5em}
+
+%---------------------------------
+% Meta data and Link Colour
+%---------------------------------
+\newcommand{\myShade}{70}
+
+\definecolor{mylinkcolor}{RGB}{113, 31, 155}
+\definecolor{mycitecolor}{RGB}{255, 189, 76}
+\definecolor{myurlcolor}{RGB}{62, 106, 171}
+
+\hypersetup{
+  pdfauthor   = {\MetaAuthor},
+  pdftitle    = {\MetaTitle},
+  pdfsubject  = {\MetaTitle},
+  pdfkeywords = {\MetaUniversity, \MetaTitle},
+  colorlinks  = true,
+  linkcolor   = mylinkcolor!\myShade!black,
+  citecolor   = mycitecolor!\myShade!black,
+  urlcolor    = myurlcolor!\myShade!black,
+}
+
+%---------------------------------
+% Fancy header
+%---------------------------------
+%\renewcommand{\sectionmark}[1]{\markright{#1}}
+%\clearpairofpagestyles
+%\lohead[\rightmark{}]{\rightmark{}}
+%\cohead[\MetaTitle{}]{\MetaTitle{}}
+%\rofoot[\pagemark/\pageref*{LastPage}]{\normalfont\pagemark/\pageref*{LastPage}}
+%\pagestyle{scrheadings}
+%
+%\newtriplepagestyle{introheader}{}{}{}{}{}{\normalfont\pagemark/\pageref*{LastPage}}
+
+%---------------------------------
+% Microtype optimisations
+%---------------------------------
+% http://www.khirevich.com/latex/microtype/
+\SetProtrusion{encoding={*},family={bch},series={*},size={6,7}}
+              {1={ ,750},2={ ,500},3={ ,500},4={ ,500},5={ ,500},%
+               6={ ,500},7={ ,600},8={ ,500},9={ ,500},0={ ,500}}
+\SetExtraKerning[unit=space]
+    {encoding={*}, family={bch}, series={*}, size={footnotesize,small,normalsize}}
+    {%
+      \textendash={400,400}, % en-dash, add more space around it
+      "28={ ,150}, % left bracket, add space from right
+      "29={150, }, % right bracket, add space from left
+      \textquotedblleft={ ,150}, % left quotation mark, space from right
+      \textquotedblright={150, } % right quotation mark, space from left
+    }
+\SetExtraKerning[unit=space]
+    {encoding={*}, family={qhv}, series={b}, size={large,Large}}
+    {%
+      1={-200,-200},%
+      \textendash={400,400}%
+    }
+\SetTracking{encoding={*}, shape=sc}{20}
+\microtypecontext{spacing=nonfrench}
+
+%---------------------------------
+% Caption format
+%---------------------------------
+\captionsetup{
+  format=hang,
+  labelfont=bf,
+  justification=justified,
+  %single line captions should be centered, multiline captions justified
+  singlelinecheck=true
+}
+
+%---------------------------------
+% Prevent single page figures with no text
+%---------------------------------
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+
+%---------------------------------
+% No backwardscompatibility
+%---------------------------------
+\pgfplotsset{compat=1.16}
+
+%---------------------------------
+% Fix hypernation
+%---------------------------------
+\hyphenation{Zei-len-um-bruch}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMMANDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%---------------------------------
+% Shortcuts
+%---------------------------------
+\newcommand{\git}{\texttt{git}\xspace}
+
+%---------------------------------
+% Ref footnotes
+%---------------------------------
+\makeatletter
+\newcommand{\myFootnoteref}[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+
+%---------------------------------
+% hyphen used between two capitals
+%---------------------------------
+\newcommand{\myCapitalHyphen}{%
+  \raisebox{0.24ex}{%
+    \resizebox{0.4em}{%
+      \height%
+    }{-}%
+  }%
+  \kern-0.07em%
+}
+
+%---------------------------------
+% href Link as foot note
+%---------------------------------
+\newcommand{\myFnUrl}[2]{%
+  \ifthenelse{\equal{#1}{}}{%
+    \footnote{\url{#2}}%
+  }{%
+    \href{#2}{#1}\footnote{ \url{#2}}%
+  }%
+}
+
+%---------------------------------
+% Empty paragraph
+%
+% This creates a paragraph section without being followed by text or space. This is usefull for lists.
+%---------------------------------
+\newcommand{\mySinglePar}[1]{\paragraph*{#1}\mbox{}\vspace*{-\parskip}}
+
+%---------------------------------
+% Horizontal line for title page
+%---------------------------------
+\newcommand{\HRule}{\rule{\linewidth}{0.2mm}}
+
+%-------------------
+% Command to break text without spaces or hyphens
+%-------------------
+\newcommand\myTextBreaker[1]{\tbhelp#1\relax\relax\relax}
+\def\tbhelp#1#2\relax{{#1}\penalty0\ifx\relax#2\else\tbhelp#2\relax\fi}
+
+%-------------------
+% Command to break urls without spaces or hyphens
+%-------------------
+\makeatletter
+  \catcode`\%=12
+    \newcommand\pcnt{\%}
+  \catcode`\%=14
+
+  \catcode`\_=12
+    \newcommand\unsc{\_}
+  \catcode`\_=8
+
+  \newcommand*\myURLBreaker{\myURLBreaker@iii\myURLBreaker@i}
+  \newcommand*\myURLBreaker@iii[1]{\begingroup\catcode`\_12\catcode`\%12 #1}
+  \newcommand*\myURLBreaker@i[1]{\href{#1}{\ubhelp#1\relax\relax\relax}\endgroup}
+  \def\ubhelp#1#2\relax{{#1}\penalty0\ifx\relax#2\else\ubhelp#2\relax\fi}
+\makeatother
+
+%-------------------
+% Convenience command to create a nested table
+%-------------------
+\newcommand{\specialcell}[2][l]{%
+  \setlength{\extrarowheight}{0pt}%
+  \def\arraystretch{1}%
+  \tabulinesep=.025em%
+  \begin{tabular}[t]{@{}#1@{}}#2\end{tabular}%
+}
+
+%-----------------------------------------
+% Rust language
+%-----------------------------------------
+\makeatletter
+% here is a macro expanding to the name of the language
+% (handy if you decide to change it further down the road)
+\newcommand\language@rust{myRust}
+
+\expandafter\expandafter\expandafter\lstdefinelanguage
+\expandafter{\language@rust}
+{
+  language=Rust,
+  alsoletter={!'},
+  morekeywords=[7]{'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k, 'l, 'm, 'n, 'o, 'p, 'q, 'r, 's, 't, 'u, 'v, 'w, 'x, 'y, 'z, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Q, 'R, 'S, 'T, 'U, 'V, 'W, 'X, 'Y, 'Z},
+}
+\makeatother
+
+%---------------------------------
+% Listings style
+%---------------------------------
+\lstdefinestyle{myStyle}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  xleftmargin=\parindent,
+  showstringspaces=false,
+  basicstyle={\color{black}\small\ttfamily},
+  keywordstyle=[1]{\bfseries\color[rgb]{0,.3,.7}},
+  keywordstyle=[2]{\bfseries\color[rgb]{0,.1,.3}},
+  keywordstyle=[3]{\bfseries\color{Orange}},
+  keywordstyle=[4]{\bfseries\color{Coral}},
+  keywordstyle=[5]{\bfseries\color[rgb]{0,.2,.5}},
+  keywordstyle=[6]{\bfseries\color{Teal}},
+  keywordstyle=[7]{\bfseries\color{Brown}},
+  commentstyle={\color{DimGray}},
+  stringstyle={\color{DarkGreen}},
+  numberstyle={\tiny\color{Gray}},
+  identifierstyle={\color{black}},
+  upquote=true,
+  breaklines=true,
+  breakatwhitespace=true,
+  keepspaces,
+  upquote=true,
+  aboveskip=0.8em,
+  literate={%
+    {Ö}{{\"O}}1%
+    {Ä}{{\"A}}1%
+    {Ü}{{\"U}}1%
+    {ß}{{\ss}}1%
+    {ü}{{\"u}}1%
+    {ä}{{\"a}}1%
+    {ö}{{\"o}}1%
+    {~}{{\textasciitilde}}1%
+    {\.}{}{0\discretionary{.}{}{.}}},
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

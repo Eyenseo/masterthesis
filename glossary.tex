@@ -1,0 +1,25 @@
+%!TEX root = thesis.tex
+
+\makeglossaries
+
+% Glossary - stuff the reader should know
+% 1. \gls{ha} -> "HAZOP"
+% 2. \gls{ha} -> "HAZOP"
+\newglossaryentry{api}{
+  name=API,
+  description={Programmierschnittstell, von application programming interface},
+  plural=APIs, % Optional
+  descriptionplural={Programmierschnittstellen, von application programming interfaces} % Optional
+}
+
+% Acronym - stuff the read probably doesn't know
+% 1. \ac{ito} -> "Internet of Things (IoT)"
+% 2. \ac{ito} -> "IoT"
+\newglossaryentry{fm}{
+  name=FM,
+  description={Fehlerzustand},
+  first={\glsentrydesc{fm} (\glsentrytext{fm}, von Failure Mode)},
+  plural=FMs, % optional
+  descriptionplural={Fehlerzustände}, % optional
+  firstplural={\glsentrydescplural{fm} (\glsentryplural{fm}, von Failure Modes)} % optional
+}
