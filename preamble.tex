@@ -1,5 +1,4 @@
 %!TEX root = thesis.tex
-
 % Copyright 2018 Roland Jäger
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,7 +17,7 @@
 % AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 % LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-% SOFTWARE.{numbers=noenddot}{scrbook}
+% SOFTWARE.
 
 \documentclass[
   a4paper,  % Standard format - only KOMAScript uses paper=a4 - https://tex.stackexchange.com/a/61044/9075
@@ -184,18 +183,6 @@
   citecolor   = mycitecolor!\myShade!black,
   urlcolor    = myurlcolor!\myShade!black,
 }
-
-%---------------------------------
-% Fancy header
-%---------------------------------
-%\renewcommand{\sectionmark}[1]{\markright{#1}}
-%\clearpairofpagestyles
-%\lohead[\rightmark{}]{\rightmark{}}
-%\cohead[\MetaTitle{}]{\MetaTitle{}}
-%\rofoot[\pagemark/\pageref*{LastPage}]{\normalfont\pagemark/\pageref*{LastPage}}
-%\pagestyle{scrheadings}
-%
-%\newtriplepagestyle{introheader}{}{}{}{}{}{\normalfont\pagemark/\pageref*{LastPage}}
 
 %---------------------------------
 % Microtype optimisations
@@ -392,3 +379,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Environments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{abstract}{
+  \vspace*{\fill}
+  \begin{center}%
+    \bfseries\abstractname
+  \end{center}}%
+  {\vfill}
