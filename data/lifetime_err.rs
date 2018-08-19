@@ -5,7 +5,7 @@ struct Foo {
 }
 pub fn main() {
   let foo = {
-    let s = String::from("Hello");
+    let s = String::from("Maria");
     Foo { s: &s }
   };
 }

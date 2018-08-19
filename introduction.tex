@@ -23,6 +23,10 @@
   But the project doesn't aim to create a complete safe language and intends to make compromises in favor of other goals.
   % TODO mention Ada here?
 
+  The following sections will provide a short introduction to the Rust programming language.
+  The focus is on the elements and features that are important to this thesis and with that non exhaustive.
+  For a more in-depth and up to data introduction it is strongly advised to refer to the official documentation.
+
   \subsection{Borrows and Lifetimes}
     At the core of the memory and concurrency goal stands the \emph{borrowing} mechanic.
     Borrowing can be thought of as \emph{taking a reference} in C++.
@@ -92,24 +96,124 @@
     At this point it has to be noted thou that lifetimes can only be applied to borrows.
     In other words they can't be used to say something about the lifetime of memory itself.
 
-  \subsection{Structs and Traits}
-    The fundamental pieces are \codr{struct}s, \codr{trait}s and \codr{impl} blocks.
-    Structs are equivalent to C \codc{struct}s as they are a collection of fields.
-    Traits can be thought of as Java \codj{interface}s, they dictate a set of functions that have to be implemented by a type that provides a certain \codr{trait}.
-    Additionally to \codr{trait}s that dictate the abilities a type processes \codr{impl} blocks can be used to add methods to a \codr{struct}.
-
+  \subsection{Structs, Traits and Generics}
+    The fundamental pieces of the Rust \gls{oop} model are \codr{struct}s, \codr{trait}s and \codr{impl} blocks.
+    \codr{struct}s are equivalent to C \codc{struct}s as they are a collection of fields.
+    \codr{trait}s can be thought of as Java \codj{interface}s, they dictate a set of functions that have to be implemented by a type that provides a certain \codr{trait}.
+    Additionally to \codr{trait}s \codr{impl} blocks can be used to add methods to a \codr{struct}.
 
     While Rust can be thought of as an \gls{oop} language it differs in a few features these languages exhibit usually.
     The most apparent is the inheritance model.
     While it is not possible to inherit from a \codr{struct}, \codr{trait}s can inherit each other.
-    It is also possible to implement functions and \codr{trait}s for a set of types.
-    This set is made up of a types that satisfy a collection of \codr{trait}s and lifetimes -- these are also called a \emph{bound}.
+    It is also possible to implement functions and \codr{trait}s for a set of types through generic type parameter.
+    This set of types is made up of a types that satisfy a collection of \codr{trait}s and lifetimes.
+    These are also called \emph{bounds} and one can be seen in line 5 of \autoref{lst:genericsCall}.
     Never the less leads the missing inheritance of \codr{struct}s to `forced' composition and to code duplication if a bound can't be expressed.
-    Such a situation can easily appear as a bound has to hold for all types, weather all types actually use the functions doesn't matter.
-    This is in contrast to C++ where only the function invocation triggers a check.
+    Such a situation can appear as a bound has to hold for all types, whether all types actually invoke the functions doesn't matter.
+    This is in contrast to C++ where only the function invocation triggers a check for it.
     In cases like this there are macros that provide a convenient way to duplicate the code at the appropriate places.
+    % TODO mention 'missing' function overloading
 
-    % TODO monomorphism, trait objects
+    \newsavebox{\genericsBase}
+    \begin{lrbox}{\genericsBase}%
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=myRust,
+          nolol=ture,
+          lastline=15,
+        ]{data/generics.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\genericsCall}
+    \begin{lrbox}{\genericsCall}
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=myRust,
+          nolol=ture,
+          firstline=17,
+          lastline=31,
+        ]{data/generics.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Type Structure]{\usebox{\genericsBase}\label{lst:genericsBase}} \hfill%
+      \subfloat[Generics and Trait Usages]{\usebox{\genericsCall}\label{lst:genericsCall}}
+      \caption{Rust Generics and Trait Objects}\label{lst:generics}
+    \end{figure}
+
+    \autoref{lst:genericsBase} declares a \codr{trait} and two \codr{struct}s that then implement the \codr{trait} respectively.
+    In line 1 of \autoref{lst:genericsCall} the function \codr{fun_gen} uses a type parameter \codr{T} with a bound of \codr{Who}.
+    There too happens code duplication -- this time on invocation of the generic function.
+    This is called \emph{monomorphism} and behaves similarly the way C++ realises template functions.
+    In case that a function is not implemented for a bound, or it is not possible to do so, the alternative is a \emph{trait object}.
+    This can be seen in line 5 of \autoref{lst:genericsCall} where the function expects an trait object.
+    Trait objects can be compared to abstract classes in C++.
+    This means that method calls are a \emph{dynamic dispatched} -- in other words a virtual function call is executed for \codr{obj.who()}.
+    Since virtual function calls are generally slow it often advised to write code that is based on bounds.
+    Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}.
+    This might introduce additional slowdown as more cache is need per object.
+
+  \subsection{Errors and Null}
+    For errors, failures or exceptions Rust doesn't use \emph{exceptions}\footnote{%
+      This is partially true as \codr{panic}s can be caught\ldots
+    }.
+    Rust provides two ways to express an error, both can be seen in \autoref{lst:errorFun}.
+    The first way uses the \codr{Result<T, E>} wrapper as return type of functions.
+    This type contains either the success return value of type \codr{T} or an error value of type \codr{E}.
+    In case the value is \codr{0} the success value will be returned.
+    In case that the value is greater than \codr{7} an error value will be returned instead.
+    Lastly there is \codc{panic!}\footnote{%
+      The \codr{!} indicates that \codr{panic!} is a macro.
+    } which will terminate the program.
+    This macro is used throughout the standard library e.g.\ for an access over the limits of an array.
+    Another wrapper type that is used throughout the standard library is \codr{Option<T>}.
+    The main difference to \codr{Result} is, that \codr{Option} can only hold a valid value or non at all.
+    An wrapped value is created thought \codr{Some(val)} or \codr{None}.
+
+    \newsavebox{\errorFun}
+    \begin{lrbox}{\errorFun}%
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=myRust,
+          nolol=ture,
+          lastline=9,
+        ]{data/error.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\errorGun}
+    \begin{lrbox}{\errorGun}
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=myRust,
+          nolol=ture,
+          firstline=10,
+        ]{data/error.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Rust Error Types]{\usebox{\errorFun}\label{lst:errorFun}} \hfill%
+      \subfloat[Ways to Deal with Errors]{\usebox{\errorGun}\label{lst:errorGun}}
+      \caption{Rust Error Mechanics}\label{lst:error}
+    \end{figure}
+
+    \autoref{lst:errorGun} shows two ways how these wrapped values can be unwrapped though \emph{matching}.
+    In \codr{gun()} it is the \codr{?} operator, which unwraps the \codr{Result}.
+    If it is the success value it will be returned to the \emph{scope}.
+    But if it is the error value the value will be returned from the \emph{function}.
+    The \codr{?} operator is a tool to direct the data flow of possible error results conveniently.
+    What the \codr{?} operator does can be roughly seen in the \codr{hun()} function.
+    In case of an \codr{Option} there is a more convenient way; \codr|if let Some(val) = val { ... }|.
+    Matching is can be found in many aspects of the language and is is mostly a convenience feature.
 
   \subsection{Tools and Ecosystem}
     Another place where Rust differentiates itself from competitors is the tooling and the resulting ecosystem.
@@ -127,7 +231,7 @@
     Mozilla's Firefox uses Servo, the \gls{css} Style engine, since the 57 Firefox release.\autocite{servo}
     Other notable companies that are using Rust are Atlassian, Cloudflare
     and Dropbox.\autocite{rustorg}
-
+    While the industry is slowly testing and adopting Rust it has to be said that this language is still young and undergoes radical changes ever so often.
 
 \section{Motive}
 \end{document}
