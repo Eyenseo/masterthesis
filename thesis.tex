@@ -6,16 +6,19 @@
 % Document start
 %---------------------------------
 \begin{document}
+
 %---------------------------------
 % Titlepage
 %---------------------------------
 \Coverpage
+
 %---------------------------------
 % abstract
 %---------------------------------
 ~\thispagestyle{empty}\newpage% Move both abstracts on the same page
 \setcounter{page}{2}
 \subfile{abstract}
+
 %---------------------------------
 % table of contents
 %---------------------------------
@@ -25,26 +28,48 @@
   \tableofcontents
   \microtypesetup{protrusion=true} % disables protrusion locally in the document
 }
+
+%---------------------------------
+% References
+%---------------------------------
+\cleardoublepage
+{
+  \let\cleardoublepage\clearpage
+  \listoffigures
+  %\listoftables% TODO check if needed
+  \lstlistoflistings
+  \printglossary[type=\acronymtype,title=List of Acronyms]
+  %Guarantee that the even page is empty
+  \thispagestyle{empty}~\newpage
+  \thispagestyle{empty}~\newpage
+}
 \cleardoublepage
 
+%---------------------------------
+% Main
+%---------------------------------
 \subfile{introduction}
 \subfile{design}
 \subfile{implementation}
 \subfile{evaluation}
 \subfile{summary}
-\cleardoublepage
 
-%---------------------------------
-% Glossary with Acronyms
-%---------------------------------
-\printglossary
 %---------------------------------
 % Bibliography
 %---------------------------------
 \microtypesetup{protrusion=false} % disables protrusion locally in the document
 \begingroup
 % \sloppy % Use if text or urls are not breaking correctly
-\printbibliography[title={Literaturverzeichnis}, heading=bibintoc]
+\printbibliography
+\cleardoublepage
 \endgroup
 \microtypesetup{protrusion=true} % enabels protrusion locally in the document
+
+%---------------------------------
+% Appendix
+%---------------------------------
+\appendix
+\pagenumbering{arabic}% resets `page` counter to 1
+\renewcommand*{\thepage}{\Roman{page}}
+%\appendixpage% Creates a part page - follow with chapters aso.
 \end{document}

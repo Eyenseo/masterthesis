@@ -60,6 +60,7 @@
         \lstinputlisting[
           style=myEnvStyle,
           language=myRust,
+          nolol=ture,
         ]{data/lifetime_err.rs}
       \end{minipage}
     \end{lrbox}
@@ -70,6 +71,7 @@
         \lstinputlisting[
           style=myEnvStyle,
           language=myRust,
+          nolol=ture,
         ]{data/lifetime_fixed.rs}
       \end{minipage}
     \end{lrbox}
@@ -82,7 +84,7 @@
     \end{figure}
 
     In \autoref{lst:borrowing} the lifetimes can be omitted as the compiler is able to infer them.
-    For \autoref{lst:lifetime} an explicit lifetime is needed for the attribute \codr{s} in the struct \codr{Foo}.
+    For \autoref{lst:lifetimeErr} an explicit lifetime is needed for the attribute \codr{s} in the struct \codr{Foo}.
     Here the compiler is not able to infer where the lifetime for \codr{s} will come from.
     In \autoref{lst:lifetimeFix} this error is fixed by explicitly giving the borrow a lifetime.
     % TODO is it really or has it a special name?
@@ -122,7 +124,7 @@
 
     Through the appealing goals and the convenient tooling Rust gained traction over the last years.\autocites{sosurvey}{rustorg}{rust3}
     It also sees application in the industry slowly.
-    Mozilla's Firefox uses Servo, the CSS Style engine, since the 57 Firefox release.\autocite{servo}
+    Mozilla's Firefox uses Servo, the \gls{css} Style engine, since the 57 Firefox release.\autocite{servo}
     Other notable companies that are using Rust are Atlassian, Cloudflare
     and Dropbox.\autocite{rustorg}
 
