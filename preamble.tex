@@ -69,6 +69,8 @@
 \usepackage[automake,acronym,indexonlyfirst,nomain]{glossaries} % glossary and accronyms
 \usepackage{pgffor} % used to iterate over a list
 \usepackage{appendix}
+\usepackage{upquote}
+\usepackage{subfig}
 
 %---------------------------------
 % Style
@@ -83,9 +85,9 @@
 ]{geometry}
 \usepackage[
   activate={%
-    true,%
-    nocompatibility%
-  }, % activate protrusion and expansion
+      true,%
+      nocompatibility%
+    }, % activate protrusion and expansion
   final, % enable microtype; use "draft" to disable
   tracking=true,%
   kerning=true,%
@@ -125,11 +127,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CONFIGURATIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%---------------------------------
-% Load input files to compile
-%---------------------------------
-\input{input}
-
 %---------------------------------
 % Image folders
 %---------------------------------
@@ -189,23 +186,23 @@
 %---------------------------------
 % http://www.khirevich.com/latex/microtype/
 \SetProtrusion{encoding={*},family={bch},series={*},size={6,7}}
-              {1={ ,750},2={ ,500},3={ ,500},4={ ,500},5={ ,500},%
-               6={ ,500},7={ ,600},8={ ,500},9={ ,500},0={ ,500}}
+{1={ ,750},2={ ,500},3={ ,500},4={ ,500},5={ ,500},%
+  6={ ,500},7={ ,600},8={ ,500},9={ ,500},0={ ,500}}
 \SetExtraKerning[unit=space]
-    {encoding={*}, family={bch}, series={*}, size={footnotesize,small,normalsize}}
-    {%
-      \textendash={400,400}, % en-dash, add more space around it
-      "28={ ,150}, % left bracket, add space from right
-      "29={150, }, % right bracket, add space from left
-      \textquotedblleft={ ,150}, % left quotation mark, space from right
-      \textquotedblright={150, } % right quotation mark, space from left
-    }
+{encoding={*}, family={bch}, series={*}, size={footnotesize,small,normalsize}}
+{%
+\textendash={400,400}, % en-dash, add more space around it
+"28={ ,150}, % left bracket, add space from right
+"29={150, }, % right bracket, add space from left
+\textquotedblleft={ ,150}, % left quotation mark, space from right
+\textquotedblright={150, } % right quotation mark, space from left
+}
 \SetExtraKerning[unit=space]
-    {encoding={*}, family={qhv}, series={b}, size={large,Large}}
-    {%
-      1={-200,-200},%
-      \textendash={400,400}%
-    }
+{encoding={*}, family={qhv}, series={b}, size={large,Large}}
+{%
+  1={-200,-200},%
+  \textendash={400,400}%
+}
 \SetTracking{encoding={*}, shape=sc}{20}
 \microtypecontext{spacing=nonfrench}
 
@@ -219,6 +216,90 @@
   %single line captions should be centered, multiline captions justified
   singlelinecheck=true
 }
+
+%-----------------------------------------
+% Rust language
+%-----------------------------------------
+\makeatletter
+% here is a macro expanding to the name of the language
+% (handy if you decide to change it further down the road)
+\newcommand\language@rust{myRust}
+
+\expandafter\expandafter\expandafter\lstdefinelanguage
+\expandafter{\language@rust}
+{
+  language=Rust,
+  alsoletter={!'},
+  morekeywords=[7]{'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k, 'l, 'm, 'n, 'o, 'p, 'q, 'r, 's, 't, 'u, 'v, 'w, 'x, 'y, 'z, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Q, 'R, 'S, 'T, 'U, 'V, 'W, 'X, 'Y, 'Z},
+}
+\makeatother
+
+%---------------------------------
+% Listings style
+%---------------------------------
+% This is a hack for sourcecode pro
+% See https://github.com/silkeh/latex-sourcecodepro/issues/4
+\makeatletter
+\lst@CCPutMacro
+\lst@ProcessOther {"60}{%
+\lst@ttfamily{\raisebox{4pt}{\`{}}}% used with ttfamily
+\textasciigrave%
+}% used with other fonts
+\@empty\z@\@empty
+\makeatother
+\lstdefinestyle{myStyle}{
+belowcaptionskip=1\baselineskip,
+breaklines=true,
+xleftmargin=\parindent,
+basicstyle={\color{black}\small\ttfamily},
+keywordstyle=[1]{\bfseries\color[rgb]{0,.3,.7}},
+keywordstyle=[2]{\bfseries\color[rgb]{0,.1,.3}},
+keywordstyle=[3]{\bfseries\color{Orange}},
+keywordstyle=[4]{\bfseries\color{Coral}},
+keywordstyle=[5]{\bfseries\color[rgb]{0,.2,.5}},
+keywordstyle=[6]{\bfseries\color{Teal}},
+keywordstyle=[7]{\bfseries\color{Brown}},
+commentstyle={\color{DimGray}},
+stringstyle={\color{DarkGreen}},
+numberstyle={\tiny\color{Gray}},
+identifierstyle={\color{black}},
+breaklines=true,
+breakatwhitespace=true,
+keepspaces,
+aboveskip=0.8em,
+belowcaptionskip=-1em,
+literate={%
+{Ö}{{\"O}}1%
+{Ä}{{\"A}}1%
+{Ü}{{\"U}}1%
+{ß}{{\ss}}1%
+{ü}{{\"u}}1%
+{ä}{{\"a}}1%
+{ö}{{\"o}}1%
+{~}{{\textasciitilde}}1%
+{\.}{}{0\discretionary{.}{}{.}}},
+}
+
+\lstdefinestyle{myEnvStyle}{
+  style=myStyle,
+  frameshape={RYR}{Y}{Y}{RYR},
+  captionpos=b,
+  numbers=left,
+}
+
+%---------------------------------
+% Listing shorthandles
+%---------------------------------
+\newcommand\cod{\lstinline[style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\codc{\lstinline[language=C++, style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\codr{\lstinline[language=myRust, style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\codj{\lstinline[language=Java, style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+
+%---------------------------------
+% Setup Listings cations for subfigures
+%---------------------------------
+\def\sublstlistingautorefname{\lstlistingname}
+\AfterPreamble{\newsubfloat{lstlisting}}
 
 %---------------------------------
 % Prevent single page figures with no text
@@ -241,11 +322,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % COMMANDS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%---------------------------------
-% Shortcuts
-%---------------------------------
-\newcommand{\git}{\texttt{git}\xspace}
-
 %---------------------------------
 % Ref footnotes
 %---------------------------------
@@ -277,13 +353,6 @@
 }
 
 %---------------------------------
-% Empty paragraph
-%
-% This creates a paragraph section without being followed by text or space. This is usefull for lists.
-%---------------------------------
-\newcommand{\mySinglePar}[1]{\paragraph*{#1}\mbox{}\vspace*{-\parskip}}
-
-%---------------------------------
 % Horizontal line for title page
 %---------------------------------
 \newcommand{\HRule}{\rule{\linewidth}{0.2mm}}
@@ -298,18 +367,18 @@
 % Command to break urls without spaces or hyphens
 %-------------------
 \makeatletter
-  \catcode`\%=12
-    \newcommand\pcnt{\%}
-  \catcode`\%=14
+\catcode`\%=12
+\newcommand\pcnt{\%}
+\catcode`\%=14
 
-  \catcode`\_=12
-    \newcommand\unsc{\_}
-  \catcode`\_=8
+\catcode`\_=12
+\newcommand\unsc{\_}
+\catcode`\_=8
 
-  \newcommand*\myURLBreaker{\myURLBreaker@iii\myURLBreaker@i}
-  \newcommand*\myURLBreaker@iii[1]{\begingroup\catcode`\_12\catcode`\%12 #1}
-  \newcommand*\myURLBreaker@i[1]{\href{#1}{\ubhelp#1\relax\relax\relax}\endgroup}
-  \def\ubhelp#1#2\relax{{#1}\penalty0\ifx\relax#2\else\ubhelp#2\relax\fi}
+\newcommand*\myURLBreaker{\myURLBreaker@iii\myURLBreaker@i}
+\newcommand*\myURLBreaker@iii[1]{\begingroup\catcode`\_12\catcode`\%12 #1}
+\newcommand*\myURLBreaker@i[1]{\href{#1}{\ubhelp#1\relax\relax\relax}\endgroup}
+\def\ubhelp#1#2\relax{{#1}\penalty0\ifx\relax#2\else\ubhelp#2\relax\fi}
 \makeatother
 
 %-------------------
@@ -322,66 +391,11 @@
   \begin{tabular}[t]{@{}#1@{}}#2\end{tabular}%
 }
 
-%-----------------------------------------
-% Rust language
-%-----------------------------------------
-\makeatletter
-% here is a macro expanding to the name of the language
-% (handy if you decide to change it further down the road)
-\newcommand\language@rust{myRust}
-
-\expandafter\expandafter\expandafter\lstdefinelanguage
-\expandafter{\language@rust}
-{
-  language=Rust,
-  alsoletter={!'},
-  morekeywords=[7]{'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k, 'l, 'm, 'n, 'o, 'p, 'q, 'r, 's, 't, 'u, 'v, 'w, 'x, 'y, 'z, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Q, 'R, 'S, 'T, 'U, 'V, 'W, 'X, 'Y, 'Z},
-}
-\makeatother
-
-%---------------------------------
-% Listings style
-%---------------------------------
-\lstdefinestyle{myStyle}{
-  belowcaptionskip=1\baselineskip,
-  breaklines=true,
-  xleftmargin=\parindent,
-  showstringspaces=false,
-  basicstyle={\color{black}\small\ttfamily},
-  keywordstyle=[1]{\bfseries\color[rgb]{0,.3,.7}},
-  keywordstyle=[2]{\bfseries\color[rgb]{0,.1,.3}},
-  keywordstyle=[3]{\bfseries\color{Orange}},
-  keywordstyle=[4]{\bfseries\color{Coral}},
-  keywordstyle=[5]{\bfseries\color[rgb]{0,.2,.5}},
-  keywordstyle=[6]{\bfseries\color{Teal}},
-  keywordstyle=[7]{\bfseries\color{Brown}},
-  commentstyle={\color{DimGray}},
-  stringstyle={\color{DarkGreen}},
-  numberstyle={\tiny\color{Gray}},
-  identifierstyle={\color{black}},
-  upquote=true,
-  breaklines=true,
-  breakatwhitespace=true,
-  keepspaces,
-  upquote=true,
-  aboveskip=0.8em,
-  literate={%
-    {Ö}{{\"O}}1%
-    {Ä}{{\"A}}1%
-    {Ü}{{\"U}}1%
-    {ß}{{\ss}}1%
-    {ü}{{\"u}}1%
-    {ä}{{\"a}}1%
-    {ö}{{\"o}}1%
-    {~}{{\textasciitilde}}1%
-    {\.}{}{0\discretionary{.}{}{.}}},
-}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Environments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newenvironment{abstract}{
-  \vspace*{\fill}
-  \begin{center}%
-    \bfseries\abstractname
-  \end{center}}%
-  {\vfill}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Special treatment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{subfiles}

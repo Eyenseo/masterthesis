@@ -15,7 +15,7 @@
 %---------------------------------
 ~\thispagestyle{empty}\newpage% Move both abstracts on the same page
 \setcounter{page}{2}
-\input{abstract}
+\subfile{abstract}
 %---------------------------------
 % table of contents
 %---------------------------------
@@ -27,13 +27,12 @@
 }
 \cleardoublepage
 
-\foreach \c in \InputOnly {%
-  \ifx\c\empty
-  \else
-    \input{\c}%
-  \fi
-}%
-\newpage
+\subfile{introduction}
+\subfile{design}
+\subfile{implementation}
+\subfile{evaluation}
+\subfile{summary}
+\cleardoublepage
 
 %---------------------------------
 % Glossary with Acronyms

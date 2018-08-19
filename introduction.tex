@@ -1,0 +1,131 @@
+\documentclass[thesis]{subfiles}
+\begin{document}
+\chapter{Introduction}
+
+\section{SKilL}
+
+\section{Rust}
+  % TODO mention
+  % Like C++, Rust takes zero-cost abstractions as one of its core principles:
+  % none of Rust’string abstractions impose a global performance penalty, nor is
+  % there overhead from any runtime system in the traditional sense.
+
+  The official Rust language website describes the language as;
+  \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rustorg}
+  It presents itself mostly as a \emph{safe} language that should be considered as substitute for C, C++ and other systems programming languages.
+  The project criticizes especially the following points in other languages and intends to solve them:
+  \begin{enumerate}
+    \item \enquote{There is too little attention paid to safety.}\autocite{rustorg}
+    \item \enquote{They have poor concurrency support.}\autocite{rustorg}
+    \item \enquote{There is a lack of practical affordances.}\autocite{rustorg}
+    \item \enquote{They offer limited control over resources.}\autocite{rustorg}
+  \end{enumerate}
+  But the project doesn't aim to create a complete safe language and intends to make compromises in favor of other goals.
+  % TODO mention Ada here?
+
+  \subsection{Borrows and Lifetimes}
+    At the core of the memory and concurrency goal stands the \emph{borrowing} mechanic.
+    Borrowing can be thought of as \emph{taking a reference} in C++.
+    Like all variables borrows are by default \emph{immutable} or in C++ words \codc{const}.
+    Contrary to C++ mutable access has to be explicitly requested with the \codr{mut} keyword.
+    Additionally to the reference Rust also attaches a \emph{lifetime} to the borrow.
+    This lifetime can be thought of as a `reference counted`\footnote{%
+      This will be a more fitting mental image once non-lexical lifetimes become stable.
+    } smart-pointer \emph{at compile-time}.
+    A program will fail to compile if there is more than one mutable access to a variable or a writable and readable access exists at the same time.
+
+    \lstinputlisting[
+      style=myEnvStyle,
+      language=myRust,
+      float,
+      floatplacement=ht,
+      caption={Rust Borrow Mechanics},
+      label={lst:borrowing},
+    ]{data/borrow_mut.rs}
+
+    \autoref{lst:borrowing} depicts a simple example that demonstrates these rules.
+    In line 2 a new \emph{owned} string is created -- \codr{"Hello"} is a string literal and can't be modified.
+    Since the string shall be modified an explicit conversion function has to be called.
+    An immutable borrow is taken from \codr{string} in line 2.
+    It is fine to use both \codr{string} and \codr{foo} to call methods on the object that require an immutable borrow.
+    But using a method that requires a mutable borrow on \codr{foo} will lead to a compile-time error.
+    It might be surprising, but line 9 also leads to a compile-time error\footnote{%
+      With non-lexical lifetimes this will compile.
+    }.
+    Since \codr{string} is borrowed immutable until the end of the scope it doesn't matter that it is a mutable variable.
+
+    \newsavebox{\lifetimeErrBox}
+    \begin{lrbox}{\lifetimeErrBox}% Store first listing
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=myRust,
+        ]{data/lifetime_err.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\lifetimeFixBox}
+    \begin{lrbox}{\lifetimeFixBox}% Store first listing
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=myRust,
+        ]{data/lifetime_fixed.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Explicit Lifetime Required]{\usebox{\lifetimeErrBox}\label{lst:lifetimeErr}} \hfill%
+      \subfloat[Lifetime Mechanic Benefits]{\usebox{\lifetimeFixBox}\label{lst:lifetimeFix}}
+      \caption{Rust Lifetime Mechanics}\label{lst:lifetime}
+    \end{figure}
+
+    In \autoref{lst:borrowing} the lifetimes can be omitted as the compiler is able to infer them.
+    For \autoref{lst:lifetime} an explicit lifetime is needed for the attribute \codr{s} in the struct \codr{Foo}.
+    Here the compiler is not able to infer where the lifetime for \codr{s} will come from.
+    In \autoref{lst:lifetimeFix} this error is fixed by explicitly giving the borrow a lifetime.
+    % TODO is it really or has it a special name?
+    This leads to a different compiler error that is called \emph{use after free} and can lead to dangerous situations.
+    At this point it has to be noted thou that lifetimes can only be applied to borrows.
+    In other words they can't be used to say something about the lifetime of memory itself.
+
+  \subsection{Structs and Traits}
+    The fundamental pieces are \codr{struct}s, \codr{trait}s and \codr{impl} blocks.
+    Structs are equivalent to C \codc{struct}s as they are a collection of fields.
+    Traits can be thought of as Java \codj{interface}s, they dictate a set of functions that have to be implemented by a type that provides a certain \codr{trait}.
+    Additionally to \codr{trait}s that dictate the abilities a type processes \codr{impl} blocks can be used to add methods to a \codr{struct}.
+
+
+    While Rust can be thought of as an \gls{oop} language it differs in a few features these languages exhibit usually.
+    The most apparent is the inheritance model.
+    While it is not possible to inherit from a \codr{struct}, \codr{trait}s can inherit each other.
+    It is also possible to implement functions and \codr{trait}s for a set of types.
+    This set is made up of a types that satisfy a collection of \codr{trait}s and lifetimes -- these are also called a \emph{bound}.
+    Never the less leads the missing inheritance of \codr{struct}s to `forced' composition and to code duplication if a bound can't be expressed.
+    Such a situation can easily appear as a bound has to hold for all types, weather all types actually use the functions doesn't matter.
+    This is in contrast to C++ where only the function invocation triggers a check.
+    In cases like this there are macros that provide a convenient way to duplicate the code at the appropriate places.
+
+    % TODO monomorphism, trait objects
+
+  \subsection{Tools and Ecosystem}
+    Another place where Rust differentiates itself from competitors is the tooling and the resulting ecosystem.
+    As a young language Rust took the opportunity to learn and improve upon the established languages.
+
+    The build system is not a third party tool but rather an extension of Rust language itself.
+    Projects are created through the \cod{cargo} command that creates a bare bones project structure and also a \cod{git} repository.
+    Through \cod{cargo} builds, tests, benchmarks and publications are handled.
+    The tool handles the dependencies and downloads the specific libraries from \href{www.crates.io}{crates.io} which is something that other systems languages struggle with.
+    Rust also paid close attention to documentation and tests code inside documentation e.g.\ code examples.
+    Further is the ability to generate webpages with the documentation build-in which is similar to Python.
+
+    Through the appealing goals and the convenient tooling Rust gained traction over the last years.\autocites{sosurvey}{rustorg}{rust3}
+    It also sees application in the industry slowly.
+    Mozilla's Firefox uses Servo, the CSS Style engine, since the 57 Firefox release.\autocite{servo}
+    Other notable companies that are using Rust are Atlassian, Cloudflare
+    and Dropbox.\autocite{rustorg}
+
+
+\section{Motive}
+\end{document}
