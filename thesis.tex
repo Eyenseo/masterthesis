@@ -28,23 +28,6 @@
   \tableofcontents
   \microtypesetup{protrusion=true} % disables protrusion locally in the document
 }
-
-%---------------------------------
-% References
-%---------------------------------
-\cleardoublepage
-{
-  \let\cleardoublepage\clearpage
-  \listoffigures
-  %\listoftables% TODO check if needed
-  \lstlistoflistings
-  \printglossary[type=\acronymtype,title=List of Acronyms]
-  %Guarantee that the even page is empty
-  \thispagestyle{empty}~\newpage
-  \thispagestyle{empty}~\newpage
-}
-\cleardoublepage
-
 %---------------------------------
 % Main
 %---------------------------------
@@ -64,6 +47,22 @@
 \cleardoublepage
 \endgroup
 \microtypesetup{protrusion=true} % enabels protrusion locally in the document
+
+%---------------------------------
+% References
+%---------------------------------
+\cleardoublepage
+{
+  \let\cleardoublepage\clearpage
+  \listoffigures
+  %\listoftables% TODO check if needed
+  \lstlistoflistings
+  \printglossary[type=\acronymtype,title=List of Acronyms]
+  %Guarantee that the even page is empty
+  \thispagestyle{empty}~\newpage
+  \thispagestyle{empty}~\newpage
+}
+\cleardoublepage
 
 %---------------------------------
 % Appendix

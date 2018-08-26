@@ -1,10 +1,50 @@
 \documentclass[thesis]{subfiles}
 \begin{document}
+
 \chapter{Introduction}
+This thesis is about the design and implementation of a \gls{skill} generator (see \autoref{sec:skill}) that targets Rust.
+Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will be guaranteed safe and parallelised in data-race free manner.
 
 \section{SKilL}
+  \label{sec:skill}
+
+  \gls{skill}, as the name suggests, is a language that is intended to be used for serialisation.
+  The next sections will give a brief overview of \gls{skill}, the tooling and its intended use.
+  For more in depth information and the reasoning for design decisions it is advised to refer to \autocites{SKilL-TR}{SKilL-Dis}.
+
+  \subsection{\glsentrytext{skill} Motive}
+    The motive behind \gls{skill} is to provide a serialisation mothod that supports the following features\autocite{SKilL-TR}:
+    \begin{itemize}
+      \item small serialised file sizes
+      \item fully reflective type encoding
+      \item type-safe storage of references
+      \item a type system that provides container, references, single inheritance and extension points
+      \item tools work with partial specifications
+      \item coding that is platform and language independent, upwards and downwards compatible
+      \item data that is not used will not be deserialized
+    \end{itemize}
+
+    \gls{skill} itself is a data structure description language.
+    With \gls{skill} it is possible to describe the data structures for a software system in a natural way.
+    This is possible since the type system provides the fundamental types that are building blocks of most, commonly used languages.
+    The type system in combination with the different targets (eg. C, C++, Java) allow the user to write code in the prefered or required language.
+
+  \subsection{\glsentrytext{skill} Usage}
+    After the description file is create it can be passed to the ``compiler''.
+    Contrary to gcc, clang or javac the \gls{skill} compiler targets other languages like C, C++ or Java.
+    To generate the target's code the first step is to translate the input to an \gls{ir}.
+    That \gls{ir} is then given to a generator for further processing.
+    These generators are the final step that generate the native code from the \gls{ir}.
+
+    Generators can support different amounts of features and some features may not be native to the language eg. inheritance in C.
+    In such cases the generator has to produce something compareable to the intended feature.
+    In case of inheritance for C, are structures declared with all fields that were specified in the super types of them in the \gls{skill} file.
+    Similarly is the upwards and downwards compatibility achived by generators.
+    The basic idea is to create some kind of type erasure.
+    How that is achived depends on the target language.
 
 \section{Rust}
+  \label{sec:rust}
   % TODO mention
   % Like C++, Rust takes zero-cost abstractions as one of its core principles:
   % none of Rust’string abstractions impose a global performance penalty, nor is
@@ -233,5 +273,4 @@
     and Dropbox.\autocite{rustorg}
     While the industry is slowly testing and adopting Rust it has to be said that this language is still young and undergoes radical changes ever so often.
 
-\section{Motive}
 \end{document}
