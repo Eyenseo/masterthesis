@@ -1,13 +1,498 @@
-%!TEX root = ../thesis.tex
-\chapter{Design}
+\documentclass[thesis]{subfiles}
+\begin{document}
 
-\section{Graphs}
-  % TODO https://www.rust-lang.org/en-US/faq.html#how-can-i-implement-a-data-structure-that-contains-cycles
+\chapter{Design}
+This section will feature the design of the generated and common rust code.
+Not only had difficult decisions be made but some of the choices have an overreaching impact on the rest of the thesis.
+These key points and their impact will be reviewed in \autoref{chap:eval} in more detail.
+
+\section{Graphs}\label{sec:graph}
+  \gls{skill} allows the creation of graphs with its references as most language do.
+  This is generally not a problem and sometimes needed to express the required data structure.
+  Rust doesn't support graphs.
+  While this is not completely true, it is nearer to the truth than saying that they are supported.
+  This section will focus on graphs in Rust, will roughly follow the recommendation of \autocite{rust-faq} and will surface the problems that arise in combination with \gls{skill}.
+
+  \subsection{Native Cycles}
+    In \autoref{lst:cyclesOne} a na\"ive implementation of a \Node containing another \Node is shown.
+    This looks simple but this is what a graph boils down to.
+    There has to be an object that doesn't own memory but references it.
+    Without that detail it would only be possible to create a tree.
+    This example fails as there is no \Node object before the root \Node \codr{a}.
+
+    \newsavebox{\cyclesOne}
+    \begin{lrbox}{\cyclesOne}%
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+        ]{data/cycle_1.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\cyclesTwo}
+    \begin{lrbox}{\cyclesTwo}
+      \begin{minipage}{.475\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+        ]{data/cycle_2.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Na\"ive Implementation]{\usebox{\cyclesOne}\label{lst:cyclesOne}} \hfill%
+      \subfloat[Defered Next]{\usebox{\cyclesTwo}\label{lst:cyclesTwo}}
+      \caption{Rust, no Cycles Allowed}\label{lst:cycles}
+    \end{figure}
+
+    \autoref{lst:cyclesTwo} uses the \codr{Option} wrapper introduced in \autoref{ssec:rustErr}.
+    This allows the creation of the initial \Node object \codr{a}.
+    It is further possible to assign the root object \codr{a} to the child object \codr{b}.
+    But from that point on problems appear.
+    First of all does \codr{b} not live long enough -- this is the direct result of the lifetime specifier.
+    Secondly has \codr{b} to be assigned to \codr{a.next} and with that needs \codr{a} to be mutable.
+    This should sound familiar to the problems shown in \autoref{ssec:rustBorr}.
+    Since \codr{a} is already borrowed by \codr{b.next}, \codr{a} can't be borrowed again mutable to assign \codr{b} to it.
+
+  \subsection{Pointers in Rust}
+    Coming from a C++ background the next thing that comes to mind would be pointers.
+    Pointers were not introduced in \autoref{sec:rust} and the reason for that is, that they are not a type commonly used in Rust.
+    Why this is the case can be seen in \autoref{lst:pointers}.
+
+    \autoref{lst:pointersOne} shows the basic usage of pointers, also named `raw pointers'.
+    Raw pointers differ from references and smart pointers in the following points\autocite{rust-book}: Pointers \ldots
+    \begin{itemize}
+      \item are allowed to ignore the borrowing rules by having both immutable and mutable pointers or multiple mutable pointers to the same location
+      \item aren't guaranteed to point to valid memory
+      \item are allowed to be null
+      \item don’t implement any automatic cleanup
+    \end{itemize}
+    A pointer to the string \codr{s} is assigned to \codr{sp} in line 3.
+    In line 6 \codr{s} is accessed through \codr{sp}.
+    To do this \codr{unsafe} code is involved.
+    Unsafe code allows the following\autocite{rust-book}:
+    \begin{itemize}
+      \item Dereference a raw pointer
+      \item Call an unsafe function or method
+      \item Access or modify a mutable static variable
+      \item Implement an unsafe trait
+    \end{itemize}
+    While the code may not be the most readable it doesn't pose a direct issue.
+
+    \newsavebox{\pointersOne}
+    \begin{lrbox}{\pointersOne}%
+      \begin{minipage}{.44\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+        ]{data/pointer_1.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\pointersTwo}
+    \begin{lrbox}{\pointersTwo}
+      \begin{minipage}{.49\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+        ]{data/pointer_2.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Pointers in Rust]{\usebox{\pointersOne}\label{lst:pointersOne}} \hfill%
+      \subfloat[Problems with Pointers in Rust]{\usebox{\pointersTwo}\label{lst:pointersTwo}}
+      \caption{Rust Pointers and Unsafe Code}\label{lst:pointers}
+    \end{figure}
+
+    The issue, to why pointers are not the solution for our graph problem and why they are uncommon in Rust code comes apparent in \autoref{lst:pointersTwo}.
+    There a pointer \codr{sp} is created that points to the mutable string \codr{s}.
+    Line 4 and 5 indicate that there might be an issue -- it is possible to create two \emph{mutable} references to the same value.
+    Line 6 and 7 prove that the safety rules of rust have been broken, as it is possible to use both \codr{sm} and \codr{sm2} in methods that mutate \codr{s}.
+    With these rules broken also thread safety comes undone and with that most of the incentive to use Rust is lost.
+
+  \subsection{Memory Arenas and Cells}\label{ssec:cell}
+    \codr{UnsafeCell<T>} is a wrapper type from Rusts standard library.
+    This wrapper allows to change the contained data without having to be mutable.
+    What that basically means is, that code that uses an \codr{UnsafeCell<T>} is vulnerable to most issues that Rust wants to prevent.
+    It is in the responsibility of the developer to ensure that the borrowing rules are heeded to as well as thread safety is guaranteed.\autocite{rust-doc}
+
+    \autoref{lst:unsafecell} shows what this means for the code.
+    In line 8 a mutable \codr{Vec} is created, with two instances of \Node.
+    In line 12 the first instance is assigned a new string literal.
+    In line 13 and 14 a reference cycle is created between the two \codr{Foo} instances.
+    This is in contrast to \autoref{lst:cyclesTwo}, which failed.
+    Apart from \codr{UnsafeCell}, which solves the borrowing error, here a vector is used to store the \Node instances.
+    This small detail fixes the lifetime issue.
+    In line 15 a compiler error is raised as the second \Node instance is already borrowed immutable in line 13.
+    That means that the `normal' data from the objects can't be modified.
+    Further is this example very much simplified and other issues, like the vector initialization, vector expansion and lifetimes carried though all code will arise.
+
+    \lstinputlisting[
+      style=myEnvStyle,
+      language=Rust,
+      float,
+      floatplacement=ht,
+      caption={Breaking Mutability Rules},
+      label={lst:unsafecell},
+    ]{data/unsafecell.rs}
+
+  \subsection{Smart Pointer}
+    The term smart pointer might be familiar from C++.
+    In Rust there is \RcT which is a reference counting wrapper that acts as pointer and it is comparable to \codr{std::shared_ptr<T>} from C++.
+    This smart pointer uses two integer to count how many \emph{weak} and \emph{strong} references there are to the owned data.
+    If the strong counter reaches zero in the destructor (called \codr{Drop} in Rust) of \RcT the destructor for \codr{T} is called, but the memory is not released yet.
+    Once the weak counter reaches zero too the memory is released.
+    This means there is only one memory allocation which leads to better cache locality and with that speed.
+    But it also means that the memory can only be freed once the last weak pointer is destructed, which might be unwanted.
+    One might expect that \RcT is the solution to the graph problem, but its semantics prevent that.\autocite{rust-doc}
+
+    The semantics of \RcT are the following.
+    It is possible to have any number of \RcTs and \WeakTs to the same \codr{T}.
+    If there is more than one \RcT or a \WeakT to the same \codr{T} it is only possible to access \codr{T} in an immutable way.
+    Further can \RcT instances be downgraded to \WeakT and if the strong count has not yet reached zero it is possible to upgrade \WeakT instances to \RcT.
+    This means that this approach suffers from the same issue that was encountered in \autoref{ssec:cell}.\autocite{rust-doc}
+
+    The solution to this issue is to use an additional wrapper \codr{Rc<RefCell<T>>}.
+    \codr{RefCell<T>} uses internally \codr{UnsafeCell<T>} and provides the means to enforce the borrowing rules and thread-safety guarantees.
+    This is done by enforcing the borrowing rules at runtime by using an integer counter; 0 for no users, the high bit for writer and the rest for reader.
+    When calling \codr{borrow()} or \codr{borrow_mut()} on \codr{RefCell<T>} it will not return a \codr{&T} or \codr{&mut T}, instead \codr{Ref<T>} and \codr{RefMut<T>} are returned.
+    These wrapper will increment the appropriate counters on construction and decrement them on release.
+    If the borrowing rules are to be violated a \codr{Result<T, E>} with an error value will be returned instead of a reference wrapper.\autocite{rust-doc}
+
+    \lstinputlisting[
+      style=myEnvStyle,
+      language=Rust,
+      float,
+      floatplacement=ht,
+      caption={Smart Pointer to Cell to Value},
+      label={lst:rcrefcell},
+    ]{data/rcrefcell.rs}
+
+    \autoref{lst:rcrefcell} shows a working example that solves the encountered problems so far.
+    Now \Node contains a \codr{Vec<T>} that stores \WeakT.
+    It is very important that it is \WeakT and not \RcT as \RcT would result in a memory leak.
+    This is the case as \codr{a} and \codr{b} would keep the strong counter above zero for each other.
+
+    % TODO refere to evaluation for slowdown?
+
+  \subsection{Indexes as Pointers Replacement}
+    Another solution for graphs is something that is very similar to \glspl{ecs}.
+    In an \gls{ecs} an `object' is represented through an entity that is mostly just an identifier like an integer.
+    Components are the data of the entities and are stored usually in an indexable, continuous structure.
+    The systems are responsible to use and modify the components based on other components and entities.\autocite{sfml}
+    The \gls{ecs} pattern provides composition over inheritance as the entity has no information about systems using it and the assigned components.
+    \glspl{ecs} are most commonly used by game engines as it results in very fast code and is easier to write reusable code\autocite{unity}.
+    While an \gls{ecs} seems favorable compared to the other options, it is not the optimal in combination with \gls{skill}.
+
+    The problems with this approach do not come from Rust as in the previous section.
+    Here the problem comes from the simple fact that \gls{skill} is designed for \gls{oop} and not for \glspl{ecs}.
+    That means that is most probably no possible to find a correct mapping from objects to components.
+    Inheritance can't be the determining factor as one field might be added that is dependent on inherited fields.
+    Apart from inheritance there is not much more information available to construct component boundaries from.
+    If the distinct types from a type hierarchy are used as components there would not be a continuous structure containing the objects but that poses an issue with \gls{skill}.
+    \gls{skill} is designed in a such a way that it is beneficial to have a single structure that contains the various types of the type hierarchy.
+    The reason for that is, that \gls{skill} IDs are assigned to \gls{skill} objects of a type hierarchy in a unique, monotonic manner and are used to access them.\autocite{skill-tr}
+
+    In the rust community \gls{ecs} like structures are often the in the discussion as solution to cycles and graphs\autocites{rust-graph-r4cpp}{rust-graph-leipzig}{rust-graph-niko}{rust-graph-exyr}.
+    An prominent example for an implementation of an \gls{ecs} is the \emph{specs}\autocite{rust-specs} library that is used for \glspl{gui}\autocite{rust-xi} and small engines\autocites{rust-amethyst}{rust-rhusics}.
 
 \section{Inheritance}
+  \newsavebox{\inheritanceJava}
+  \begin{lrbox}{\inheritanceJava}%
+    \begin{minipage}{.25\linewidth}
+      \lstinputlisting[
+        style=myEnvStyle,
+        language=Java,
+        nolol=ture,
+      ]{data/inheritanceE.java}
+    \end{minipage}
+  \end{lrbox}
 
-\section{Code Generation Objective}
+  \begin{wrapfigure}{r}{0.38\textwidth}
+    \vspace*{-1.825\baselineskip}% This sucks
+    \captionsetup{type=lstlisting}
+    \begin{center}
+      \usebox{\inheritanceJava}
+    \end{center}
+    \vspace*{-\baselineskip}% this sucks too
+    \caption{Inheritance in Java}\label{lst:inheritanceJava}%
+    \vspace*{-\baselineskip}% I hate wrapfig so much
+  \end{wrapfigure}
+  Rusts inheritance differs from common \gls{oop} languages.
+  In Rust \structs are just a collection of data and do not support any kind of inheritance.
+  \traits  on the other hand can `inherit' other traits -- multiple at once -- as can be seen in \autoref{lst:inheritance}.
+  \codr{trait B} \emph{requires} that \codr{trait A} is implemented for whatever type \codr{B} is implemented for.
+  That makes it also possible to call methods from \codr{A} on instances of type \codr{B}.
+  However it is not not possible to assign a variable of type \codr{&B} to a variable that expects a type of \codr{&A}.
+  The need for a reference (\codr{&}) comes from the fact that \codr{B} is just a \trait.
+  A data pointer to a \struct instance is required to create trait object of type \codr{B}.
+
+  \gls{skill} supports and requires inheritance that supports single inheritance\autocite{skill-tr} as present in the Java example seen in \autoref{lst:inheritanceJava}.
+  In this section techniques are explored that can be used to mimic single inheritance in Rust.
+
+  \newsavebox{\inheritanceOne}
+  \begin{lrbox}{\inheritanceOne}%
+    \begin{minipage}{.445\linewidth}
+      \lstinputlisting[
+        style=myEnvStyle,
+        language=Rust,
+        nolol=ture,
+        lastline=7,
+      ]{data/inheritance.rs}
+    \end{minipage}
+  \end{lrbox}
+
+  \newsavebox{\inheritanceTwo}
+  \begin{lrbox}{\inheritanceTwo}
+    \begin{minipage}{.4825\linewidth}
+      \lstinputlisting[
+        style=myEnvStyle,
+        language=Rust,
+        nolol=ture,
+        firstline=9,
+        firstnumber=9
+      ]{data/inheritance.rs}
+    \end{minipage}
+  \end{lrbox}
+
+  \begin{figure}[ht]
+    \captionsetup{type=lstlisting}
+    \usebox{\inheritanceOne}\hfill
+    \usebox{\inheritanceTwo}
+    \caption{Trait Inheritance}\label{lst:inheritance}
+  \end{figure}
+
+  \subsection{Inheritance through Composition}%
+    \newsavebox{\inheritanceComposition}%
+    \begin{lrbox}{\inheritanceComposition}%
+      \begin{minipage}{.25\linewidth}%
+        \lstinputlisting[%
+          style=myEnvStyle,%
+          language=Rust,%
+          nolol=ture,%
+        ]{data/inheritanceComposition.rs}%
+      \end{minipage}%
+    \end{lrbox}%
+    %
+    \begin{wrapfigure}{r}{0.38\textwidth}%
+      \vspace*{-\baselineskip}% This sucks
+      \captionsetup{type=lstlisting}%
+      \begin{center}%
+        \usebox{\inheritanceComposition}%
+      \end{center}%
+      \vspace*{-\baselineskip}% this sucks too
+      \caption{Inheritance emulated with Composition}\label{lst:inheritanceComposition}%
+    \end{wrapfigure}%
+    Instead of inheritance Rust advocates composition.
+    That would mean that that the code from \autoref{lst:inheritanceComposition} would represent the type hierarchy present in \autoref{lst:inheritanceJava}.
+    This a few nice properties;
+    The user would be working with types, not trait objects and thus the code would not use virtual functions.
+    Further is this code easy to write and up casts are performed in a very easy way.
+    But on the other hand, down casting becomes impossible as this would mean a cyclic relationship.
+    Or there would have to be an option form \autoref{sec:graph} involved, which would degrade the usability and would require linear time or memory to perform.
+    If the type hierarchy is deep enough a simple field access would have to be hidden away behind an interface since the chaining of children or parents would become unbearable.
+    This interface is also necessary for the user to implement functions for the valid \structs.
+    They would be implemented for a trait bound to allow the user to implement the functionality only once.
+    % TODO example ?
+
+  \subsection{Traits and Black Magic}\label{ssec:magic}
+    If a type hierarchy, as seen in \autoref{lst:inheritanceJava}, has to be realized in Rust another option is to use \traits and would result in something akin to \autoref{lst:inheritanceTrait}.
+    The `real' types have the suffix \codr{Proper} and the access interfaces have the original type name.
+    This improves the convenience for the user of the code as the user will most of the time have to use the trait objects.
+    While inheritance can be expressed this way it has a few quirks that have to be improved upon.
+    \begin{itemize}
+      \item Down casting are impossible.
+      \item Up casting only works for the `proper' type and not the proxy trait that emulates inheritance.
+    \end{itemize}
+
+    \newsavebox{\inheritanceTriatOne}
+    \begin{lrbox}{\inheritanceTriatOne}
+      \begin{minipage}{.3\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+          lastline=7,
+        ]{data/inheritanceTrait.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\inheritanceTriatTwo}
+    \begin{lrbox}{\inheritanceTriatTwo}
+      \begin{minipage}{.6\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+          firstline=9,
+          firstnumber=9,
+        ]{data/inheritanceTrait.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \usebox{\inheritanceTriatOne}\hfill%
+      \usebox{\inheritanceTriatTwo}
+      \caption{Emulated Inheritance with Traits}\label{lst:inheritanceTrait}
+    \end{figure}
+
+    To solve these two issues a \codr{cast} function will have to be created that is able to create a trait object from another.
+    In \autoref{ssec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \codr{cast} function.
+    The first field of a trait object is the data pointer to the \struct -- copying the pointer is no issue.
+    However the second field is more difficult to fill as the correct vtable pointer has to be created.
+    Fortunately Rust allows the creation of a trait object to a \codr{null} pointer.
+    Once the second field is set to the correct pointer the cast is complete and the trait object can be worked with as if it was created `naturally'.
+    The last detail would a way to determine which Type to get the vtable from.
+    This can be done by either a lookup table realized through an array or a function with conditional branches.
+    Both can be generated through the code generator.
+
+    \lstinputlisting[
+      style=myEnvStyle,
+      language=Rust,
+      float,
+      floatplacement=ht,
+      caption={Obtaining a VTable from \codr{NULL}},
+      label={lst:nullTraitObject},
+    ]{data/nullTraitObject.rs}
+
+    \autoref{lst:nullTraitObject} shows how to obtain the vtable pointer.
+    There is a \codr{Proper struct} and a \codr{trait Object} that is implemented for \codr{Proper}.
+    Additionally there is the \codr{struct TraitObject} that is needed for the casting effort.
+    In line 14 a \codr{null} pointer is created with the type of \codr{Proper} and then casted to a trait object of type \codr{Object}.
+    This trait object is then \codr{transmuted} to a \codr{TraitObject} instance -- \codr{_} is replaced by the compiler by the type of the parameter.
+    Through the interface of \codr{TraitObject} the vtable pointer can be accessed easily.
+
+    The outstanding issue with this approach is that it has to be applied to the values themself.
+    Any normal wrapper would inhibit the ability to perform these casts.
+
+  \subsection{C-Style Memory Layout}
+    Apart from Rust memory layout, where the compiler may reorder and add padding to fields, Rust also supports C-style memory layout with the \codr{#[repr(C)]} annotation.
+    With that it would be possible to use the \structs from \autoref{lst:inheritanceTrait} and \codr{unsafe} code to cast to a different \struct.
+    Obviously the field definitions have to appear in the same order -- creating the same memory layout -- for all types in a type hierarchy.
+    This approach has the issue that functions still wouldn't be inherited and would have to be implemented by the user, repeatedly, for all valid \structs.
+    Similarly to the \traits there is an issue with the casting if the memory of the \struct is managed by a wrapper type.
+    A nice property about this approach is that it fits better in normal Rust code and implicit casts to \codr{traits} can still happen as the proper type is used.
+
+\section{Generated Code}
+  While the generated code is a central point of this thesis, the generator itself is not so much.
+  The reason for that is, that the generator differs in few points from existing generators for other languages.
+  This is the case as the same infrastructure was used and no modifications had to be made to support Rust.
+
+  The generators are written in Scala and rely on mixin to be easily extensible, and string interpolation for readability.
+  Mixin classes are an alternative to inheritance that results in tree inheritance as they allow linearisation of subclasses with different super types.\autocite{oop-inter}
+  Each generator has a \cods{Main} \cods{class} that has various \cods{trait}s mixed in.
+  These traits are then responsible to create a certain set of files.
+  As result this section will focus on the files being generated, but not so much on how.
+
   \subsection{Rust Integration}
-  \subsection{Field Declarations}
-  \subsection{Pools}
-    % Instance pools ...
+    Cargo uses a manifest file named \cod{Cargo.toml}.
+    In this file the binary or library is described, this includes dependencies, build settings, versions, tests and benchmarks.
+    The file is of utmost importance for the user of the generated code as this will allow the easy inclusion in the target project.
+
+    Accompanying there are \cod{mod.rs} and \cod{lib.rs} or \cod{main.rs} files.
+    These files regulate the visibility of the different modules -- where each file and folder is a module.
+    \cod{mod.rs} files are used in directories to specify the visibility of the contained files as well as to flatten the module hierarchy.
+    \cod{lib.rs} or \cod{main.rs} files are at the root, the \cod{src} directory and mark the begin of a library or executable.
+    These files allow additionally to specify external crates, enable features and mute warnings.
+    Further can additional modules be declared in the files to allow for fine granular visibility.
+
+    The \cod{Cargo.toml} and \cod{lib.rs} files are quite easy to generate as the only part that has to be generated is the naming and the flattening of the module structure.
+    This means that a user can access the \codr{Foo}'s pool with \codr{use user_project::FooPool} instead of \codr{use user_project::foo_pool::FooPool}.
+
+  \subsection{Common Code}
+    Most of the architecture is separate from the specification and doesn't have to be generated by a generator.
+    This includes the reading and writing of the build in types, the parsing and writing of the files the string pool and the traits that need to be implemented.
+    This section focuses on some of more interesting parts of these types.
+
+    \subsubsection{Strings and their Pool}
+      Strings have to be managed and known by the \StringPool.
+      That means that a \String may not be modified by the user directly, only an indirect modification is permitted.
+      The reason for that is that duplicated strings have to be removed and that different parts (also the type and field names) may share a string.
+      A direct modification form the user might inadvertently change another part.
+
+      To conform to these requirements and the need for an id for each string -- that is obtainable through the string -- a wrapper is needed for \String.
+      Since inheritance is not an option \String is a component of \SkillString and \SkillString has to provide a method to obtain an immutable reference to the contained \String to be somewhat compatible with other libraries.
+      Since all \SkillStrings can be marked for deletion by the user it is important for the \StringPool to remember which strings are used by types and fields of the deserialized file.
+      % TODO add stuff?
+
+    \subsubsection{Foreign Types and Fields}
+      % TODO move to common section
+      There are special types are used if the filed or type encountered upon deserialisation was not known at the time the code was generated.
+      The fields themself are represented through an \enum which can be thought of as a tagged \codc{union}.
+      The foreign field definitions are somewhat special in that they deserialise their data only if it has to be written.
+      This is possible as the user has no way to interact with the foreign types or fields.
+
+      If a type has a known ancestor in a type hierarchy that type will be used instead to represent the foreign one.
+      That way the user's code can work with the known fields without knowing anything about the foreign type.
+      In turn that means that every user type has to have an array of \ForeignFieldData.
+      In case that there is no known ancestor type the \Foreign type is used to represent the type.
+      This type is not accessible by the user and only contains \ForeignFieldData.
+
+      The decision to prevent the user to interact with the foreign fields and types comes from the conclusion that;
+      If they were not known upon generation it is highly possible that the code that works with them has no idea what to do with them.
+      If there would be the possibility to interact with these values there is no guarantee that the values are modified or interpreted by the users code correctly.
+      Since Rust is very focused on safety it would be strange to allow such an hazard in the \gls{api}.
+
+    \subsubsection{Error and Handling}
+      Since Rust doesn't support exceptions return codes are the predominant way to report issues (introduced in \autoref{ssec:rustErr}).
+      The issue with return codes is, that they provide not a lot of context by themself.
+      This especially becomes apparent if the same code originates from different places in the code.
+      To improve the usability of these return codes the \codr{failure} crate\autocite{rust-failure} has been chosen to enhance the error codes.
+
+      The crate provides macros that extend the codes with the option to provide a backtrace.
+      Additionally it allows error messages that are created and formatted at runtime and are able to provide more context.
+
+      The error codes are implemented through 3 \enums, the root \enum can either contain a \codr{UserFail} or a \codr{InternalFail}.
+      This distinction was made to further enhance the context of the error and to provide the user with a more limited error set that should to be handled.
+
+  \subsection{\glsentrytext{skill} File}
+    The \SkillFile is the root of the \gls{api} for the user.
+    \SkillFile provides the functions to open and create \gls{skill} files.
+    An instance of \SkillFile is also the place where the user is able to interact with the type pools and string pool.
+    This type is straight forward to generate, as it is mostly a composite type that provides access to its components.
+
+  \subsection{User Definitions}
+    For the user defined types a few types have to be generated that work closely together to provide the user with a convenient \gls{api}.
+    Since there is no benefit towards compile time by splitting code into multiple files -- contrary to C++ for example -- each of these types reside in one file per user definition.
+
+    \subsubsection{User Type}
+      The type definitions are translated to \structs and \traits.
+      The process is a quite straight forward, and nothing fancy has to be done, which is not covered in previous sections.
+
+    \subsubsection{Type Pools}
+      For every type there is also a type pool that manages the instances and how they can be accessed.
+      The real management of the instances is delegated, through composition, to a shared type used by all concrete type pools.
+      Because of the strict borrow and ownership rules of Rust the type pools use again composition, for the deserialisation of the user types.
+      The type that implements these features is a \codr{PartsMaker} that implements a \trait that allows the creation of the \FieldDefinitions for the user types as well as the creation of new instances.
+      The \trait can be given `freely' to other functions that can not know the concrete type of the pool.
+      The \FieldDefinition creation code is run in the second phase of the type block deserialisation (introduced in \autoref{ssec:skillInter}).
+      Because of that the \codr{PartsMaker} function is also the place where all checks for the field definition happen.
+
+    \subsubsection{Field Declarations}
+      Lastly there are the \FieldDefinitions these types are responsible for the de-/serialisation of the fields from the user types.
+      For each field a \FieldDefinition is generated that implements how the field data is read and written.
+      They also handle the setup of the different chunks that are involved if the file that is deserialized has multiple blocks.
+
+  \subsection{VTable-Lookup-Table}
+    As the section name hints the casting for trait objects is implemented through a lookup table that contains the appropriate vtable pointers.
+    The lookup table is implemented as a $N \times M$ matrix, where $M$ is the amount of types $+1$ to accommodate the foreign type.
+    $N=M+1$ to additionally accommodate the shared \trait \SkillObject.
+    The memory footprint could be reduced by using a spare array at the trade-off for lookup speed.
+    % TODO mention evaluation or implementation for hashmap comparison
+    The matrix uses \codr{Option<VTable>} instances as elements -- if the value is \codr{None} the cast is invalid, otherwise the correct vtable is obtained.
+    The generator produces the correct vtables with the technique introduced in \autoref{ssec:magic}.
+    For the lookup to be efficient all user types as well as \codr{Foreign} and \SkillObject have to be assigned an index into the matrix.
+    % TODO It is important to understand that with the restrictions Rust enforces on generic functions every cast will create a trait object -- even if the cast actually is supposed to create a \struct.
+    % TODO static trait functions bullshit
+
+
+\end{document}

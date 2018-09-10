@@ -27,6 +27,9 @@
   \hypersetup{hidelinks}
   \tableofcontents
   \microtypesetup{protrusion=true} % disables protrusion locally in the document
+  \newpage
+  \thispagestyle{empty}~\newpage
+  \cleardoublepage
 }
 %---------------------------------
 % Main
@@ -59,7 +62,7 @@
   \lstlistoflistings
   \printglossary[type=\acronymtype,title=List of Acronyms]
   %Guarantee that the even page is empty
-  \thispagestyle{empty}~\newpage
+  \newpage
   \thispagestyle{empty}~\newpage
 }
 \cleardoublepage

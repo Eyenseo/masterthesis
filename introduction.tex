@@ -5,15 +5,13 @@
 This thesis is about the design and implementation of a \gls{skill} generator (see \autoref{sec:skill}) that targets Rust.
 Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will be guaranteed safe and parallelised in data-race free manner.
 
-\section{SKilL}
-  \label{sec:skill}
-
+\section{SKilL}\label{sec:skill}
   \gls{skill}, as the name suggests, is a language that is intended to be used for serialisation.
   The next sections will give a brief overview of \gls{skill}, the tooling and its intended use.
-  For more in depth information and the reasoning for design decisions it is advised to refer to \autocites{SKilL-TR}{SKilL-Dis}.
+  For more in depth information and the reasoning for design decisions it is advised to refer to \autocites{skill-tr}{skill-dis}.
 
   \subsection{\glsentrytext{skill} Motive}
-    The motive behind \gls{skill} is to provide a serialisation mothod that supports the following features\autocite{SKilL-TR}:
+    The motive behind \gls{skill} is to provide a serialisation method that supports the following features\autocite{skill-tr}:
     \begin{itemize}
       \item small serialised file sizes
       \item fully reflective type encoding
@@ -27,7 +25,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     \gls{skill} itself is a data structure description language.
     With \gls{skill} it is possible to describe the data structures for a software system in a natural way.
     This is possible since the type system provides the fundamental types that are building blocks of most, commonly used languages.
-    The type system in combination with the different targets (eg. C, C++, Java) allow the user to write code in the prefered or required language.
+    The type system in combination with the different targets (e.g.\ C, C++, Java) allow the user to write code in the prefered or required language.
 
   \subsection{\glsentrytext{skill} Usage}
     After the description file is create it can be passed to the ``compiler''.
@@ -36,12 +34,91 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     That \gls{ir} is then given to a generator for further processing.
     These generators are the final step that generate the native code from the \gls{ir}.
 
-    Generators can support different amounts of features and some features may not be native to the language eg. inheritance in C.
-    In such cases the generator has to produce something compareable to the intended feature.
+    Generators can support different amounts of features and some features may not be native to the language e.g.\ inheritance in C.
+    In such cases the generator has to produce something comparable to the intended feature.
     In case of inheritance for C, are structures declared with all fields that were specified in the super types of them in the \gls{skill} file.
-    Similarly is the upwards and downwards compatibility achived by generators.
+    Similarly is the upwards and downwards compatibility achieved by generators.
     The basic idea is to create some kind of type erasure.
-    How that is achived depends on the target language.
+    How that is achieved depends on the target language.
+
+    \subsection{\glsentrytext{skill} Internals}\label{ssec:skillInter}
+    \begin{wrapfigure}{r}{0.3\textwidth}%
+      \centering
+      \begin{tikzpicture}
+        \tikzset{%
+          node distance=1mm,
+          box/.style={draw, rounded corners=.5em},%
+          block/.style={box, minimum width={width("Field Meta Data")+3mm}},
+          string/.style={box, minimum width={width("Lengths")+3mm}},
+          type/.style={box, minimum width={width("Field Meta Data")+3mm}},
+        }
+        \node(name) {Skill File};
+        \node[box, below=-.5em of name] {
+          \begin{tikzpicture}
+            \node(name) {Block \#};
+            \node[box, below=of name] {
+              \begin{tikzpicture}
+                \node[block] (stringBlock) {
+                  \begin{tikzpicture}
+                    \node(name) {String Block};
+                    \node[string, below=of name] (lengths) {Lengths};
+                    \node[string, below=of lengths] {Strings};
+                  \end{tikzpicture}
+                };
+                \node[block, below=of stringBlock] (typeBlock) {
+                  \begin{tikzpicture}
+                    \node(name) {Type Block};
+                    \node[type, below=of name] (types) {Type Meta Data};
+                    \node[type, below=of types] (meta) {Field Meta Data};
+                    \node[type, below=of meta] {Field Data};
+                  \end{tikzpicture}
+                };
+              \end{tikzpicture}
+            };
+          \end{tikzpicture}
+        };
+      \end{tikzpicture}
+      \captionsetup{justification=raggedright}
+      \caption{\gls{skill} File Layout}
+      \label{img:skilllayout}
+      \vspace*{-3\baselineskip}
+    \end{wrapfigure}
+    This section will focus on internals of \gls{skill}, meaning that de-/serialisation and runtime system will be touched.
+
+    \subsubsection{Reading and Writing}
+      As seen in \autoref{img:skilllayout} a \gls{skill} file is made up of multiple blocks\footnote{
+      }.
+      Each of these blocks is made up of a string block and a type block.
+      String blocks first list the amount of strings, followed by the lengths of the strings followed by the strings themself.
+      This layout allows for easy reading and writing of the strings with \cod{mmap}\footnote{
+        \cod{mmap} allows to map files -- also file sections -- to a memory location that can be accessed like an array.
+      } as well as parallelization.
+      Type blocks start with the amount of types followed by the type definitions.
+      These definitions are about the type only and do not contain an information about the fields of the type -- apart from the amount that is.
+      In that section the number of instances, restrictions and super type are listed.
+      The next section contains the field definitions for the types.
+      Similar to inheritance in languages are super field definitions not redefined for the children types.
+      The definition is made up of the type of the field, as well as the restrictions.
+      The section ends with offsets into the next section where the data of the fields resides.\autocite{skill-tr}
+
+      All data touched so far is comparable small and fast to read.
+      It is also not much use to the user as this data is mostly relevant to the \gls{skill} runtime type system.
+      The runtime type system is important to allow for types and fields that are unknown to the generated code.
+      It is also important for the deletion of instances.
+      Since the end of this section only holds data and all offsets are known the reading of the data can be heavily parallelised.
+
+      The reading and writing themself are not too much different from the other implementations.
+      It will therefore not be explained in more detail than in this abstract section.
+      Similarly are multi-blocks more sophisticated than this section may make them out to be.
+      The involved data structures and data flow however will be discussed as well as their consequences.
+
+    \subsubsection{Runtime System}
+      A few types are common to all implementations, apart from the ones that are necessary to implement the de-/serialisation.
+      The \cod{SkillFile} is the \gls{api} root that the user accesses to open and create \gls{skill} files.
+      Through \cod{SkillFile} instances the can access a \cod{StringPool} that is responsible to create and manage strings in such a way that they can be serialised.
+      Similarly are there the \cod{TypePool}s that are responsible for the creation and management of the type instances.
+      Like the type block the fields of the types are managed by \cod{FieldDeclaration}s and not the type pools themself.
+      This split is not only important for the separation of concerns but also for code generation and the ability to parallelize the code.
 
 \section{Rust}
   \label{sec:rust}
@@ -51,14 +128,14 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
   % there overhead from any runtime system in the traditional sense.
 
   The official Rust language website describes the language as;
-  \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rustorg}
+  \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rust-org}
   It presents itself mostly as a \emph{safe} language that should be considered as substitute for C, C++ and other systems programming languages.
-  The project criticizes especially the following points in other languages and intends to solve them:
+  The project criticizes especially the following points in other languages and intends to solve them\autocite{rust-org}:
   \begin{enumerate}
-    \item \enquote{There is too little attention paid to safety.}\autocite{rustorg}
-    \item \enquote{They have poor concurrency support.}\autocite{rustorg}
-    \item \enquote{There is a lack of practical affordances.}\autocite{rustorg}
-    \item \enquote{They offer limited control over resources.}\autocite{rustorg}
+    \item There is too little attention paid to safety.
+    \item They have poor concurrency support.
+    \item There is a lack of practical affordances.
+    \item They offer limited control over resources.
   \end{enumerate}
   But the project doesn't aim to create a complete safe language and intends to make compromises in favor of other goals.
   % TODO mention Ada here?
@@ -67,7 +144,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
   The focus is on the elements and features that are important to this thesis and with that non exhaustive.
   For a more in-depth and up to data introduction it is strongly advised to refer to the official documentation.
 
-  \subsection{Borrows and Lifetimes}
+  \subsection{Borrows and Lifetimes}\label{ssec:rustBorr}
     At the core of the memory and concurrency goal stands the \emph{borrowing} mechanic.
     Borrowing can be thought of as \emph{taking a reference} in C++.
     Like all variables borrows are by default \emph{immutable} or in C++ words \codc{const}.
@@ -80,7 +157,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
 
     \lstinputlisting[
       style=myEnvStyle,
-      language=myRust,
+      language=Rust,
       float,
       floatplacement=ht,
       caption={Rust Borrow Mechanics},
@@ -103,7 +180,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \begin{minipage}{.45\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
-          language=myRust,
+          language=Rust,
           nolol=ture,
         ]{data/lifetime_err.rs}
       \end{minipage}
@@ -114,7 +191,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \begin{minipage}{.45\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
-          language=myRust,
+          language=Rust,
           nolol=ture,
         ]{data/lifetime_fixed.rs}
       \end{minipage}
@@ -136,19 +213,19 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     At this point it has to be noted thou that lifetimes can only be applied to borrows.
     In other words they can't be used to say something about the lifetime of memory itself.
 
-  \subsection{Structs, Traits and Generics}
-    The fundamental pieces of the Rust \gls{oop} model are \codr{struct}s, \codr{trait}s and \codr{impl} blocks.
-    \codr{struct}s are equivalent to C \codc{struct}s as they are a collection of fields.
-    \codr{trait}s can be thought of as Java \codj{interface}s, they dictate a set of functions that have to be implemented by a type that provides a certain \codr{trait}.
-    Additionally to \codr{trait}s \codr{impl} blocks can be used to add methods to a \codr{struct}.
+  \subsection{Structs, Traits and Generics}\label{ssec:stg}
+    The fundamental pieces of the Rust \gls{oop} model are \structs, \traits and \codr{impl} blocks.
+    \structs are equivalent to C \codc{struct}s as they are a collection of fields.
+    \traits can be thought of as Java \codj{interface}s, they dictate a set of functions that have to be implemented by a type that provides a certain \trait.
+    Additionally to \traits \codr{impl} blocks can be used to add methods to a \struct.
 
     While Rust can be thought of as an \gls{oop} language it differs in a few features these languages exhibit usually.
     The most apparent is the inheritance model.
-    While it is not possible to inherit from a \codr{struct}, \codr{trait}s can inherit each other.
-    It is also possible to implement functions and \codr{trait}s for a set of types through generic type parameter.
-    This set of types is made up of a types that satisfy a collection of \codr{trait}s and lifetimes.
+    While it is not possible to inherit from a \struct, \traits can inherit each other.
+    It is also possible to implement functions and \traits for a set of types through generic type parameter.
+    This set of types is made up of a types that satisfy a collection of \traits and lifetimes.
     These are also called \emph{bounds} and one can be seen in line 5 of \autoref{lst:genericsCall}.
-    Never the less leads the missing inheritance of \codr{struct}s to `forced' composition and to code duplication if a bound can't be expressed.
+    Never the less leads the missing inheritance of \structs to `forced' composition and to code duplication if a bound can't be expressed.
     Such a situation can appear as a bound has to hold for all types, whether all types actually invoke the functions doesn't matter.
     This is in contrast to C++ where only the function invocation triggers a check for it.
     In cases like this there are macros that provide a convenient way to duplicate the code at the appropriate places.
@@ -159,9 +236,9 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \begin{minipage}{.45\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
-          language=myRust,
+          language=Rust,
           nolol=ture,
-          lastline=15,
+          lastline=14,
         ]{data/generics.rs}
       \end{minipage}
     \end{lrbox}
@@ -171,10 +248,9 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \begin{minipage}{.45\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
-          language=myRust,
+          language=Rust,
           nolol=ture,
-          firstline=17,
-          lastline=31,
+          firstline=16,
         ]{data/generics.rs}
       \end{minipage}
     \end{lrbox}
@@ -186,7 +262,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \caption{Rust Generics and Trait Objects}\label{lst:generics}
     \end{figure}
 
-    \autoref{lst:genericsBase} declares a \codr{trait} and two \codr{struct}s that then implement the \codr{trait} respectively.
+    \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
     In line 1 of \autoref{lst:genericsCall} the function \codr{fun_gen} uses a type parameter \codr{T} with a bound of \codr{Who}.
     There too happens code duplication -- this time on invocation of the generic function.
     This is called \emph{monomorphism} and behaves similarly the way C++ realises template functions.
@@ -198,7 +274,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}.
     This might introduce additional slowdown as more cache is need per object.
 
-  \subsection{Errors and Null}
+  \subsection{Errors and Null}\label{ssec:rustErr}
     For errors, failures or exceptions Rust doesn't use \emph{exceptions}\footnote{%
       This is partially true as \codr{panic}s can be caught\ldots
     }.
@@ -220,7 +296,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \begin{minipage}{.45\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
-          language=myRust,
+          language=Rust,
           nolol=ture,
           lastline=9,
         ]{data/error.rs}
@@ -232,7 +308,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       \begin{minipage}{.45\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
-          language=myRust,
+          language=Rust,
           nolol=ture,
           firstline=10,
         ]{data/error.rs}
@@ -266,11 +342,11 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     Rust also paid close attention to documentation and tests code inside documentation e.g.\ code examples.
     Further is the ability to generate webpages with the documentation build-in which is similar to Python.
 
-    Through the appealing goals and the convenient tooling Rust gained traction over the last years.\autocites{sosurvey}{rustorg}{rust3}
+    Through the appealing goals and the convenient tooling Rust gained traction over the last years.\autocites{so-survey}{rust-org}{rust3}
     It also sees application in the industry slowly.
     Mozilla's Firefox uses Servo, the \gls{css} Style engine, since the 57 Firefox release.\autocite{servo}
     Other notable companies that are using Rust are Atlassian, Cloudflare
-    and Dropbox.\autocite{rustorg}
+    and Dropbox.\autocite{rust-org}
     While the industry is slowly testing and adopting Rust it has to be said that this language is still young and undergoes radical changes ever so often.
 
 \end{document}

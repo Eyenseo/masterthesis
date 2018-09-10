@@ -1,8 +1,8 @@
 struct Foo {
-  s: &String, // ERROR missing
-              // lifetime
+  s: &String, // missing lifetime
               // specifier
 }
+
 pub fn main() {
   let foo = {
     let s = String::from("Maria");

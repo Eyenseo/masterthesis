@@ -4,8 +4,8 @@ struct Foo<'a> {
 pub fn main() {
   let foo = {
     let s = String::from("Wolle");
-    Foo { s: &s } // ERROR `s` does
-                  // not live long
+    Foo { s: &s } // `s` does not
+                  // live long
                   // enough
   };
 }

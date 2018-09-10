@@ -8,8 +8,8 @@
 % copies of the Software, and to permit persons to whom the Software is
 % furnished to do so, subject to the following conditions:
 %
-% The above copyright notice and this permission notice shall be included in all
-% copies or substantial portions of the Software.
+% The above copyright notice and this permission notice shall be included in
+% all copies or substantial portions of the Software.
 %
 % THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 % IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -59,7 +59,6 @@
 % Utility
 %---------------------------------
 \usepackage[colorlinks]{hyperref} % hyper ref "addon"
-\usepackage[all]{hypcap} % better linking/ref to floats
 \usepackage{scrhack} % patches outdated float package
 \usepackage{float} % better figure placement
 \usepackage[justification=centering,format=plain]{caption} % Caption setup
@@ -67,11 +66,13 @@
 \usepackage{amsfonts} % Math stuff
 \usepackage{xspace} % for automagical spaces after commends
 \usepackage[math]{blindtext}
-\usepackage[toc,automake,acronym,indexonlyfirst,nomain]{glossaries} % glossary and accronyms
+\usepackage[toc,automake,acronym,nomain]{glossaries} % glossary and accronyms
 \usepackage{pgffor} % used to iterate over a list
 \usepackage[toc,page]{appendix}
 \usepackage{upquote}
 \usepackage{subfig}
+\usepackage{xparse}
+\usepackage{expl3}
 
 %---------------------------------
 % Style
@@ -123,6 +124,7 @@
 \usepackage{listings}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\usepackage{wrapfig}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -142,6 +144,16 @@
 % Import the glossary
 %---------------------------------
 \input{glossary}
+
+%---------------------------------
+% Tikz libs
+%---------------------------------
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\usetikzlibrary{fit}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.misc}
 
 %---------------------------------
 % Intex date format
@@ -211,29 +223,13 @@
 % Caption format
 %---------------------------------
 \captionsetup{
-  format=hang,
+  format=plain,
+  indention=.5cm,
   labelfont=bf,
   justification=justified,
   %single line captions should be centered, multiline captions justified
   singlelinecheck=true
 }
-
-%-----------------------------------------
-% Rust language
-%-----------------------------------------
-\makeatletter
-% here is a macro expanding to the name of the language
-% (handy if you decide to change it further down the road)
-\newcommand\language@rust{myRust}
-
-\expandafter\expandafter\expandafter\lstdefinelanguage
-\expandafter{\language@rust}
-{
-  language=Rust,
-  alsoletter={!'},
-  morekeywords=[7]{'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k, 'l, 'm, 'n, 'o, 'p, 'q, 'r, 's, 't, 'u, 'v, 'w, 'x, 'y, 'z, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Q, 'R, 'S, 'T, 'U, 'V, 'W, 'X, 'Y, 'Z},
-}
-\makeatother
 
 %---------------------------------
 % Listings style
@@ -248,18 +244,19 @@
 }% used with other fonts
 \@empty\z@\@empty
 \makeatother
+
 \lstdefinestyle{myStyle}{
 belowcaptionskip=1\baselineskip,
 breaklines=true,
 xleftmargin=\parindent,
-basicstyle={\color{black}\small\ttfamily},
+basicstyle={\color{white!10!black}\small\ttfamily},
 keywordstyle=[1]{\bfseries\color[rgb]{0,.3,.7}},
-keywordstyle=[2]{\bfseries\color[rgb]{0,.1,.3}},
-keywordstyle=[3]{\bfseries\color{Orange}},
-keywordstyle=[4]{\bfseries\color{Coral}},
-keywordstyle=[5]{\bfseries\color[rgb]{0,.2,.5}},
-keywordstyle=[6]{\bfseries\color{Teal}},
-keywordstyle=[7]{\bfseries\color{Brown}},
+keywordstyle=[2]{\bfseries\color{Orange}},
+keywordstyle=[3]{\bfseries\color{Coral}},
+keywordstyle=[4]{\bfseries\color{Teal}},
+keywordstyle=[5]{\color{SaddleBrown}},
+keywordstyle=[6]{\color{DodgerBlue!75!black}},
+keywordstyle=[7]{\color{black}},
 commentstyle={\color{DimGray}},
 stringstyle={\color{DarkGreen}},
 numberstyle={\tiny\color{Gray}},
@@ -278,7 +275,23 @@ literate={%
 {ä}{{\"a}}1%
 {ö}{{\"o}}1%
 {~}{{\textasciitilde}}1%
-{\.}{}{0\discretionary{.}{}{.}}},
+},
+}
+\lstdefinestyle{myInlineStyle}{
+style=myStyle,
+basicstyle={\color{white!15!black}\small\ttfamily},
+keywordstyle=[1]{},
+keywordstyle=[2]{},
+keywordstyle=[3]{},
+keywordstyle=[4]{},
+keywordstyle=[5]{},
+keywordstyle=[6]{},
+keywordstyle=[7]{},
+commentstyle={},
+stringstyle={},
+numberstyle={},
+identifierstyle={},
+moredelim=[s][{}]{\#[}{]},
 }
 
 \lstdefinestyle{myEnvStyle}{
@@ -291,15 +304,17 @@ literate={%
 %---------------------------------
 % Listing shorthandles
 %---------------------------------
-\newcommand\cod{\lstinline[style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
-\newcommand\codc{\lstinline[language=C++, style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
-\newcommand\codr{\lstinline[language=myRust, style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
-\newcommand\codj{\lstinline[language=Java, style=myStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\cod{\lstinline[style=myInlineStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\codc{\lstinline[language=C++, style=myInlineStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\codr{\lstinline[language=Rust, style=myInlineStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\codj{\lstinline[language=Java, style=myInlineStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
+\newcommand\cods{\lstinline[language=Scala, style=myInlineStyle]} % the body {} is evaluated by lstinline - this leads to the highest compatibility.
 
 %---------------------------------
 % Setup Listings cations for subfigures
 %---------------------------------
-\def\sublstlistingautorefname{\lstlistingname}
+\providecommand*{\lstlistingautorefname}{\lstlistingname}
+\providecommand*{\sublstlistingautorefname}{\lstlistingname}
 \AfterPreamble{\newsubfloat{lstlisting}}
 
 %---------------------------------
@@ -310,6 +325,9 @@ literate={%
 %---------------------------------
 % Prevent single page figures with no text
 %---------------------------------
+\setcounter{topnumber}{1}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
 \renewcommand{\topfraction}{0.85}
 \renewcommand{\bottomfraction}{0.95}
 \renewcommand{\textfraction}{0.1}
@@ -396,6 +414,42 @@ literate={%
   \tabulinesep=.025em%
   \begin{tabular}[t]{@{}#1@{}}#2\end{tabular}%
 }
+
+%-------------------
+% Listings Shortcuts
+%-------------------
+\ExplSyntaxOn
+\NewDocumentCommand{\makestring}{om} {
+  \tl_set:Nn \l_input_tl { #2 }
+  \regex_replace_all:nnN {[^a-zA-Z]} {} \l_input_tl
+  \IfNoValueTF{#1} {
+    \tl_use:N \l_input_tl
+  } {
+    \tl_set_eq:NN #1 \l_input_tl
+  }
+}
+\ExplSyntaxOff
+
+\newcommand\LstCut[1]{%
+  \makestring[\tmp]{#1}%
+  \expandafter\def\csname\tmp\endcsname{\codr{#1}\xspace}%
+  \expandafter\def\csname\tmp s\endcsname{\codr{#1}s\xspace}%
+}
+\LstCut{FieldDefinition}
+\LstCut{Node}
+\LstCut{Rc<T>}
+\LstCut{SkillObject}
+\LstCut{SkillString}
+\LstCut{StringPool}
+\LstCut{String}
+\LstCut{Weak<T>}
+\LstCut{struct}
+\LstCut{trait}
+\LstCut{enum}
+\LstCut{SkillFile}
+\LstCut{Foreign}
+\LstCut{ForeignFieldDeclaration}
+\LstCut{ForeignFieldData}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Environments
