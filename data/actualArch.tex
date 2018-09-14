@@ -1,0 +1,163 @@
+\begin{tikzpicture}[scale=0.775]
+  \begin{scope}[
+      struct/.style = {
+          shape=rectangle, rounded corners, draw,
+          align=center, font=\ttfamily, minimum height=1.825em,
+        },
+      trait/.style = {
+          struct, densely dashed,
+        },
+      edge from parent/.style = {
+          draw=none,
+        },
+      level distance=1.75cm,
+      sibling distance=1cm,
+    ]
+
+    \Tree
+    [
+    [
+    .\node[struct](SkillFile){SkillFile};
+    [
+    .\node[struct](StringPool){StringPool};
+    [
+    .\node[struct](String){String};
+    [
+    [
+        .\node[trait](Deleteable){Deleteable};
+      ]
+    ]
+    ]
+    ][
+    .\node[struct](UserTypePool){UserTypePool};
+    [
+    .\node[trait](PoolProxy){PoolProxy};
+    [
+    .\node[struct](UserType){UserType};
+    [
+    .\node[trait](SkillObject){SkillObject};
+    ]
+    ]
+    ][
+    .\node[struct](Pool){Pool};
+    [
+    .\node[struct](UserFieldDeclaration){UserFieldDecl.};
+    [
+    .\node[trait](UserTypeObject){UserTypeObject};
+    ]
+    ]
+    ]
+    ]
+    [
+    .\node[struct](UserPartsMaker){UserPartsMaker};
+    [
+    .\node[trait](PartsMaker){PartsMaker};
+    [
+    .\node[trait](FieldDeclaration){FieldDeclaration};
+    [
+    .\node[struct](ForeignData){ForeignData};
+    ]
+    ]
+    ]
+    ]
+    ][
+    .\node[struct](SkillFileBuilder){SkillFileBuilder};
+    [
+    .\node[trait](PoolMaker){PoolMaker};
+    [
+    .\node[struct](FileReader){FileReader};
+    [
+    .\node[struct](FileWriter){FileWriter};
+    ]
+    ]
+    ]
+    ]
+    ]
+  \end{scope}
+
+  \begin{scope}[
+    >={Stealth[black]},
+    every node/.style={font=\ttfamily,scale=0.775},
+    every edge/.style={line width=.3mm},
+    use/.style={->[DarkSeaGreen],draw,DarkSeaGreen,dashed,>={Latex}},
+    create/.style={->[Coral],draw,Coral,dashed,>={Latex}},
+    has/.style={->[SteelBlue],draw,SteelBlue,>={Latex}},
+    trait/.style={->[DimGray],draw,DimGray,>={Latex[line width=.2mm, open]}},
+    ]
+    % NOTE has
+    \path (SkillFileBuilder) edge[has,bend right=10] (UserTypePool);
+    \path (SkillFileBuilder) edge[has,bend right=5] (StringPool);
+
+    \path (SkillFile) edge[has,bend right=10] (UserTypePool);
+    \path (SkillFile) edge[has,bend right=5] (StringPool);
+
+    \path (UserTypePool) edge[has,bend left=10] (Pool);
+    \path (UserTypePool) edge[has] (StringPool);
+
+    \path (Pool) edge[has,bend right=10] (SkillObject);
+    \path (Pool) edge[has] (PoolProxy);
+    \path (Pool) edge[has,bend left=10] (FieldDeclaration);
+    \path (Pool) edge[has] (PartsMaker);
+
+    \path (StringPool) edge[has] (String);
+
+    \path (UserType) edge[has,out=340,in=160] (ForeignData);
+    \path (UserType) edge[has,loop left, distance=.75cm] (UserType);
+
+    % NOTE create
+    \path (UserTypePool) edge[create] (UserPartsMaker);
+
+    \path (PoolProxy) edge[create,bend left=5] (UserFieldDeclaration);
+
+    \path (PartsMaker) edge[create,bend right=5] (UserType);
+    \path (PartsMaker) edge[create,bend right=10] (UserFieldDeclaration);
+
+    \path (FieldDeclaration) edge[create] (ForeignData);
+
+    \path (PoolMaker) edge[create,bend right=10] (UserTypePool);
+    \path (PoolMaker) edge[create,bend right=10] (StringPool);
+    \path (PoolMaker) edge[create,bend right=10] (SkillFile);
+
+    \path (SkillFileBuilder) edge[create,bend left=60] (FileReader);
+
+    \path (SkillFile) edge[create,out=310,in=130] (FileWriter);
+
+    % NOTE use
+    \path (FieldDeclaration) edge[use,bend left=10] (FileReader);
+    \path (FieldDeclaration) edge[use,out=172,in=350] (PoolProxy);
+    \path (FieldDeclaration) edge[use,out=170,in=350] (StringPool);
+    \path (FieldDeclaration) edge[use] (FileWriter);
+
+    \path (FileReader) edge[use] (PoolMaker);
+
+    \path (PoolMaker) edge[use] (PoolProxy);
+
+    \path (PoolProxy) edge[use,out=15,in=185] (SkillFileBuilder);
+
+    \path (Pool) edge[use,bend right=30] (SkillFile);
+
+    % NOTE trait
+    \path (SkillFileBuilder) edge[trait] (PoolMaker);
+    \path (UserPartsMaker) edge[trait] (PartsMaker);
+    \path (UserTypePool) edge[trait,bend right=10] (PoolProxy);
+    \path (UserType) edge[trait,bend right=5] (UserTypeObject);
+    \path (UserTypeObject) edge[trait] (SkillObject);
+    \path (SkillObject) edge[trait] (Deleteable);
+    \path (UserFieldDeclaration) edge[trait] (FieldDeclaration);
+
+
+    % NOTE Legend
+    \coordinate[above left=.5 and 3.95of SkillFile](Legend1A);
+    \coordinate[above left=.5 and 4.7of SkillFile](Legend1B);
+    \coordinate[below=.5of Legend1A](Legend2A);
+    \coordinate[below=.5of Legend1B](Legend2B);
+    \coordinate[below=.5of Legend2A](Legend3A);
+    \coordinate[below=.5of Legend2B](Legend3B);
+    \coordinate[below=.5of Legend3A](Legend4A);
+    \coordinate[below=.5of Legend3B](Legend4B);
+    \path (Legend1A) edge[trait] (Legend1B) node[anchor=west,trait,draw=none]{is/trait};
+    \path (Legend2A) edge[create] (Legend2B) node[anchor=west,create,draw=none]{create};
+    \path (Legend3A) edge[has] (Legend3B) node[anchor=west,has,draw=none]{has};
+    \path (Legend4A) edge[use] (Legend4B) node[anchor=west,use,draw=none]{use};
+  \end{scope}
+\end{tikzpicture}

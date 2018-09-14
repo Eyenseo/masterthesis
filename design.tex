@@ -6,6 +6,31 @@ This section will feature the design of the generated and common rust code.
 Not only had difficult decisions be made but some of the choices have an overreaching impact on the rest of the thesis.
 These key points and their impact will be reviewed in \autoref{chap:eval} in more detail.
 
+\section{Desired Architecture}
+  In \autoref{fig:archDesire} the desired, albeit abstract, architecture is shown.
+  It is \emph{not} the architecture that is realisable in Rust however.
+  To reduce the number of redundant lines most creation relation ships have been omitted.
+
+  \begin{figure}[ht]
+    \centering
+    \input{data/desiredArch}
+    \caption{Abstract Desired Architecture}\label{fig:archDesire}
+  \end{figure}
+
+  \SkillFile is the root for the user \gls{api} and contains the \UserTypePools that that contain the users type instances and a \StringPool.
+  The \UserTypePools contain \FieldDefinitions that describe the fields of the \UserType.
+  They can't be encoded in the \UserTypePools as there can be fields that have not been known at generation time.
+  Further have the fields to be validated against the ones in the specification.
+  They also have to know the \UserTypePools as fields of \UserTypes can have other \UserTypes as fields and these instances.
+  Similarly they have to know the \StringPool in case that a field is of type \String.
+  Since \UserTypes can have \UserTypes as fields they create a cycle with themself.
+  These fields may be of their own type hierarchy or from unrelated types.
+  Additionally \UserTypes may have \Strings as fields and create another directed graph with that.
+  The \FileReader is responsible for the creation of the \StringPool, \UserTypePools and the \FieldDeclarations.
+  The creation of the instances falls back to the pools.
+  The deserialisation of the fields of the instances is the responsibility of the \FieldDefinitions as only they know what to do and if the deserialisation can be deferred until the first access or write of the instance.
+  % TODO foreshadow the `real` graph ?
+
 \section{Graphs}\label{sec:graph}
   \gls{skill} allows the creation of graphs with its references as most language do.
   This is generally not a problem and sometimes needed to express the required data structure.
@@ -148,22 +173,22 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     The term smart pointer might be familiar from C++.
     In Rust there is \RcT which is a reference counting wrapper that acts as pointer and it is comparable to \codr{std::shared_ptr<T>} from C++.
     This smart pointer uses two integer to count how many \emph{weak} and \emph{strong} references there are to the owned data.
-    If the strong counter reaches zero in the destructor (called \codr{Drop} in Rust) of \RcT the destructor for \codr{T} is called, but the memory is not released yet.
+    If the strong counter reaches zero in the destructor (called \codr{Drop} in Rust) of \RcT the destructor for \T is called, but the memory is not released yet.
     Once the weak counter reaches zero too the memory is released.
     This means there is only one memory allocation which leads to better cache locality and with that speed.
     But it also means that the memory can only be freed once the last weak pointer is destructed, which might be unwanted.
     One might expect that \RcT is the solution to the graph problem, but its semantics prevent that.\autocite{rust-doc}
 
     The semantics of \RcT are the following.
-    It is possible to have any number of \RcTs and \WeakTs to the same \codr{T}.
-    If there is more than one \RcT or a \WeakT to the same \codr{T} it is only possible to access \codr{T} in an immutable way.
+    It is possible to have any number of \RcTs and \WeakTs to the same \T.
+    If there is more than one \RcT or a \WeakT to the same \T it is only possible to access \T in an immutable way.
     Further can \RcT instances be downgraded to \WeakT and if the strong count has not yet reached zero it is possible to upgrade \WeakT instances to \RcT.
     This means that this approach suffers from the same issue that was encountered in \autoref{ssec:cell}.\autocite{rust-doc}
 
-    The solution to this issue is to use an additional wrapper \codr{Rc<RefCell<T>>}.
-    \codr{RefCell<T>} uses internally \codr{UnsafeCell<T>} and provides the means to enforce the borrowing rules and thread-safety guarantees.
+    The solution to this issue is to use an additional wrapper \RcRefCellT.
+    \RefCellT uses internally \codr{UnsafeCell<T>} and provides the means to enforce the borrowing rules and thread-safety guarantees.
     This is done by enforcing the borrowing rules at runtime by using an integer counter; 0 for no users, the high bit for writer and the rest for reader.
-    When calling \codr{borrow()} or \codr{borrow_mut()} on \codr{RefCell<T>} it will not return a \codr{&T} or \codr{&mut T}, instead \codr{Ref<T>} and \codr{RefMut<T>} are returned.
+    When calling \codr{borrow()} or \codr{borrow_mut()} on \RefCellT it will not return a \codr{&T} or \codr{&mut T}, instead \codr{Ref<T>} and \codr{RefMut<T>} are returned.
     These wrapper will increment the appropriate counters on construction and decrement them on release.
     If the borrowing rules are to be violated a \codr{Result<T, E>} with an error value will be returned instead of a reference wrapper.\autocite{rust-doc}
 
@@ -204,7 +229,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     In the rust community \gls{ecs} like structures are often the in the discussion as solution to cycles and graphs\autocites{rust-graph-r4cpp}{rust-graph-leipzig}{rust-graph-niko}{rust-graph-exyr}.
     An prominent example for an implementation of an \gls{ecs} is the \emph{specs}\autocite{rust-specs} library that is used for \glspl{gui}\autocite{rust-xi} and small engines\autocites{rust-amethyst}{rust-rhusics}.
 
-\section{Inheritance}
+\section{Inheritance}\label{sec:inheritance}
   \newsavebox{\inheritanceJava}
   \begin{lrbox}{\inheritanceJava}%
     \begin{minipage}{.25\linewidth}
@@ -313,8 +338,8 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
       \item Up casting only works for the `proper' type and not the proxy trait that emulates inheritance.
     \end{itemize}
 
-    \newsavebox{\inheritanceTriatOne}
-    \begin{lrbox}{\inheritanceTriatOne}
+    \newsavebox{\inheritanceTraitOne}
+    \begin{lrbox}{\inheritanceTraitOne}
       \begin{minipage}{.3\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
@@ -325,8 +350,8 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
       \end{minipage}
     \end{lrbox}
 
-    \newsavebox{\inheritanceTriatTwo}
-    \begin{lrbox}{\inheritanceTriatTwo}
+    \newsavebox{\inheritanceTraitTwo}
+    \begin{lrbox}{\inheritanceTraitTwo}
       \begin{minipage}{.6\linewidth}
         \lstinputlisting[
           style=myEnvStyle,
@@ -340,8 +365,8 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
 
     \begin{figure}[ht]
       \captionsetup{type=lstlisting}
-      \usebox{\inheritanceTriatOne}\hfill%
-      \usebox{\inheritanceTriatTwo}
+      \usebox{\inheritanceTraitOne}\hfill%
+      \usebox{\inheritanceTraitTwo}
       \caption{Emulated Inheritance with Traits}\label{lst:inheritanceTrait}
     \end{figure}
 
@@ -491,8 +516,6 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     The matrix uses \codr{Option<VTable>} instances as elements -- if the value is \codr{None} the cast is invalid, otherwise the correct vtable is obtained.
     The generator produces the correct vtables with the technique introduced in \autoref{ssec:magic}.
     For the lookup to be efficient all user types as well as \codr{Foreign} and \SkillObject have to be assigned an index into the matrix.
-    % TODO It is important to understand that with the restrictions Rust enforces on generic functions every cast will create a trait object -- even if the cast actually is supposed to create a \struct.
     % TODO static trait functions bullshit
-
 
 \end{document}

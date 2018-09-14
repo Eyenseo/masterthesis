@@ -1,7 +1,138 @@
-%!TEX root = ../thesis.tex
+\documentclass[thesis]{subfiles}
+\begin{document}
+
 \chapter{Implementation}
-\section{Graphs}
-\section{Inheritance}
-\section{Generator}
-  \subsection{Field Declarations}
-  \subsection{Pools}
+This section will only highlight a few implementation details that seem interesting and unique.
+Most of the implementation is only interesting for the Rust syntax as most data structures and algorithms were ported from C++.
+
+\section{\texttt{Ptr<T>} for Graphs and Casting}
+  This section will focus on the implementation of the discussed solutions of \autoref{sec:graph} and \autoref{sec:inheritance}.
+  The wrapper is named \PtrT since it provides the functionality of working with the type \T almost as if it was being pointed to by a pointer without restrictions.
+  This means more concrete that this wrapper enables \T to be passed around with reference counting and runtime borrow rules checking while being able to be cast to different types and trait objects.
+
+  \subsection{Memory Layout}
+    The type is made up of \RcT and \RefCellT, combined into one cohesive wrapper.
+    That means the original source code was copied, and combined.
+    This was needed as this type is supposed to be able to be castable.
+    Meaning that the contained value should be able to be represented as \struct or \trait.
+    Without this manual combination the reference counting and mutability state monitoring would inhibit the proper casting.
+
+    \newsavebox{\ptrStruct}
+    \begin{lrbox}{\ptrStruct}
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+        ]{data/ptrStruct.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \newsavebox{\rcRefCellStruct}
+    \begin{lrbox}{\rcRefCellStruct}
+      \begin{minipage}{.45\linewidth}
+        \lstinputlisting[
+          style=myEnvStyle,
+          language=Rust,
+          nolol=ture,
+        ]{data/rcRefCellStruct.rs}
+      \end{minipage}
+    \end{lrbox}
+
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Memory Layout from \PtrT\label{lst:ptrStruct}]{\usebox{\ptrStruct}}\hfill%
+      \subfloat[Memory Layout from \RcT and \RefCellT\label{lst:rcRefCellStruct}]{\usebox{\rcRefCellStruct}}
+      \caption{Memory Layout Comparison}\label{lst:memoryLayout}
+    \end{figure}
+
+    The merging of the to types results in the memory layout seen in \autoref{lst:ptrStruct}.
+    Compared to \autoref{lst:rcRefCellStruct} this this uses two additional pointers.
+    \RcT only needs one pointer for the \codr{RcBox<T>} that contains the meta data as well as the value.
+    And \RefCellT doesn't need any pointers what so ever.
+    Since there can be many \PtrTs that point to the same data but have a different view (different type or also as trait object) the value can not be shared between the \PtrT instances.
+    This means that there will be more cache misses and with that worse performance if the value needs to be accessed.
+
+  \subsection{Casting with \texttt{Ptr<T>}}
+    The implementation of casting for \PtrT uses the trait object casting as well as the c-style memory layout casting that were introduced in \autoref{sec:inheritance}.
+    This combination provides the high flexibility of trait objects while keeping the non virtual function calls in most cases.
+
+    \lstinputlisting[
+      style=myEnvStyle,
+      language=Rust,
+      float,
+      floatplacement=ht,
+      caption={Cast method of \PtrT},
+      label={lst:cast},
+    ]{data/cast.rs}
+
+    \autoref{lst:cast} shows the code to cast any \PtrT to \codr{Ptr<U>}, where \T and \U can each be a \struct type or a \trait type.
+    The \CastAble trait bound is needed to call \codr{cast_id()} on \U.
+    With both \ids the lookup table can be accessed and depending on the \OptionT the cast will be performed or not.
+    The curious thing about this function and Rusts generics is, that the code does the same thing for every \T and every \U.
+    That means that even if a \struct is cast to another \struct a trait object is created and the vtable will be inserted into it as if \U was indeed a trait object.
+    Fortunately the vtable is at index 1 and the data 0 because \codr{transmute} will cut the additional pointer off in case \U is indeed a \struct type.
+
+\section{Actual Architecture}
+  \autoref{fig:archDesire} shows the desired, albeit abstract, architecture for the generated code.
+  The architecture is however not implementable in exactly that way in Rust.
+  \autoref{fig:archActual} shows the actual architecture of the generated code.
+  It is still not a complete representation of the architecture and relies on abstraction and disregards some details for improved understandability.
+  Not depicted in the image are additional types that are necessary to hide \traits and types that do not differ too much from the other languages.
+  Convenience types where merged into the types that are using them predominately.
+  This section deals with the necessary adjustments for the Rust implementation.
+
+  \begin{figure}[ht]
+    \centering
+    \input{data/actualArch}
+    \caption{Abstract Actual Architecture}\label{fig:archActual}
+  \end{figure}
+
+  Additionally to to the relationships seen in \autoref{fig:archDesire} \autoref{fig:archActual} features \emph{traits} and \emph{usage}.
+  For simplicity \autoref{fig:archActual} doesn't show all has relationships towards \String.
+  The first thing that comes apparent is probably that the \SkillFile is constructed by a \SkillFileBuilder.
+  This separation is necessary since all attributes have to be initialized  on construction or have to be wrapped by \OptionT or similar.
+
+  The biggest change however comes from the \UserTypePool.
+  What was in \autoref{fig:archDesire} one type had to be split up into five.
+  The \Pool type is needed for code reuse as Rust doesn't provide inheritance.
+  Most of the code that is needed for the pools is generic and could be reused without issue.
+  The problem with code reuse through composition in Rust is that is is difficult to provide the general code with the containing class's data or special functions.
+  Because of that the \UserPartsMaker exists that externalizes the special functions of the \UserTypePool that are used by the \Pool.
+  Since the \Pool has to be able to work with other \Pools the \PoolProxy had to be created.
+  The reason for that is, that \UserTypePool instances aren't \Pools, so there has to be an interface that allows access to the \Pool components in the \UserTypePools.
+
+  A detail that might seam strange is that \PoolProxy and \PoolMaker are responsible to create \UserFieldDeclarations instances.
+  The \PartsMaker is used by the \Pool to create the \UserFieldDeclaration instances that are to be deserialized.
+  The \PoolProxy on the other hand is needed to create the \UserFieldDeclaration instances that are missing from the serialized data but were present in the specification.
+
+  % TODO move to eval
+  %While there are only two cycles in the has-relationships many more can be seen if one were to follow the usage-relationships.
+  %Some of those would not have been necessary if not for the Rust type system that forb
+
+  A walk through of the architecture is as follows to give a better understanding pf the interaction of the components of the architecture:
+  \begin{enumerate}
+    \item
+          The user accesses the \static \open method through the \SkillFile type.
+          This method uses the \SkillFileBuilder to start the reading process by creating a \FileReader.
+    \item
+          The next step is the creation and initialization of the \StringPool by parsing the string block.
+    \item
+          As described in \autoref{sssec:rwSkill} is the next part to parse the type block.
+          \begin{enumerate}
+            \item
+                  To do that the \PoolMaker is needed as this code is generic and doesn't know what \UserTypePools can be created.
+            \item
+                  Once the pools have been created the fields are added.
+                  Here the \PoolProxy \trait is needed as only through this \trait the \PartsMaker can be accessed that knows of the concrete field definitions.
+            \item
+                  Before the data can be deserialized missing fields and pools have to be created.
+                  The instances of the serialized objects also have to be created before the deserialisation can take place.
+            \item
+                  Finally the data has to be deserialized.
+                  The \SkillFileBuilder goes through all \UserTypePools which use the \FieldDeclarations to deserialise the data with the \FileReader.
+                  This step may also involve the access of other \UserTypePools to obtain other \UserType instances and similarly the \StringPool.
+          \end{enumerate}
+    \item Once all blocks have been read all data is present to initialize a \SkillFile that the user is then able to use.
+  \end{enumerate}
+\end{document}

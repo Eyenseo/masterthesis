@@ -1,0 +1,77 @@
+\begin{tikzpicture}[scale=0.775]
+  \begin{scope}[
+      every node/.style = {
+          shape=rectangle, rounded corners, draw,
+          align=center, font=\ttfamily, minimum height=1.825em,
+        },
+      edge from parent/.style = {
+          draw=none,
+        },
+      level distance=1.75cm,
+      sibling distance=1cm,
+    ]
+
+    \Tree[
+    .\node(SkillFile){SkillFile};
+    [
+    .\node(StringPool){StringPool};
+    [
+    .\node(String){String};
+    ]
+    ][
+    .\node(UserTypePool){UserTypePool};
+    [
+    .\node(UserType){UserType};
+    ][
+    .\node(FieldDeclaration){FieldDeclaration};
+    ]
+    ][
+    .\node(FileReader){FileReader};
+    [
+    .\node(FileWriter){FileWriter};
+    ]
+    ]
+    ]
+  \end{scope}
+
+  \begin{scope}[
+    >={Stealth[black]},
+    every node/.style={font=\ttfamily,scale=0.775},
+    every edge/.style={line width=.3mm},
+    create/.style={->[Coral],draw,Coral,dashed,>={Latex}},
+    has/.style={->[SteelBlue],draw,SteelBlue,>={Latex}},
+    ]
+    % NOTE has
+    \path (SkillFile) edge[has,bend left=20] (FileReader);
+    \path (SkillFile) edge[has,bend left=10] (FileWriter);
+
+
+    \path (SkillFile) edge[has,bend left=20] (UserTypePool);
+    \path (UserTypePool) edge[has,bend right=20] (UserType);
+    \path (UserTypePool) edge[has, out=290, in=140] (FieldDeclaration);
+
+    \path (FieldDeclaration) edge[has,out=110,in=320] (UserTypePool);
+    \path (FieldDeclaration) edge[has,bend right=7] (StringPool);
+
+    \path (SkillFile) edge[has,bend right=20] (StringPool);
+    \path (StringPool) edge[has] (String);
+
+    \path (UserType) edge[has] (String);
+    \path (UserType) edge[has,loop below, distance=.75cm] (UserType);
+
+    \path (FieldDeclaration) edge[has,bend left=10] (FileReader);
+
+    % NOTE create
+    \path (FileReader) edge[create] (UserTypePool);
+    \path (FileReader) edge[create,bend right=10] (StringPool);
+    \path (FileReader) edge[create,bend left=10] (FieldDeclaration);
+
+    % Legend
+    \coordinate[above left=.25 and 3.5of SkillFile](Legend1A);
+    \coordinate[above left=.25 and 4.25of SkillFile](Legend1B);
+    \coordinate[below=.5of Legend1A](Legend2A);
+    \coordinate[below=.5of Legend1B](Legend2B);
+    \path (Legend1A) edge[create] (Legend1B) node[anchor=west,create,draw=none]{create};
+    \path (Legend2A) edge[has] (Legend2B) node[anchor=west,has,draw=none]{has};
+  \end{scope}
+\end{tikzpicture}

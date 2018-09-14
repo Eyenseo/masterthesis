@@ -85,7 +85,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     \end{wrapfigure}
     This section will focus on internals of \gls{skill}, meaning that de-/serialisation and runtime system will be touched.
 
-    \subsubsection{Reading and Writing}
+    \subsubsection{Reading and Writing}\label{sssec:rwSkill}
       As seen in \autoref{img:skilllayout} a \gls{skill} file is made up of multiple blocks\footnote{
       }.
       Each of these blocks is made up of a string block and a type block.
@@ -263,7 +263,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     \end{figure}
 
     \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
-    In line 1 of \autoref{lst:genericsCall} the function \codr{fun_gen} uses a type parameter \codr{T} with a bound of \codr{Who}.
+    In line 1 of \autoref{lst:genericsCall} the function \codr{fun_gen} uses a type parameter \T with a bound of \codr{Who}.
     There too happens code duplication -- this time on invocation of the generic function.
     This is called \emph{monomorphism} and behaves similarly the way C++ realises template functions.
     In case that a function is not implemented for a bound, or it is not possible to do so, the alternative is a \emph{trait object}.
@@ -280,14 +280,14 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     }.
     Rust provides two ways to express an error, both can be seen in \autoref{lst:errorFun}.
     The first way uses the \codr{Result<T, E>} wrapper as return type of functions.
-    This type contains either the success return value of type \codr{T} or an error value of type \codr{E}.
+    This type contains either the success return value of type \T or an error value of type \codr{E}.
     In case the value is \codr{0} the success value will be returned.
     In case that the value is greater than \codr{7} an error value will be returned instead.
     Lastly there is \codc{panic!}\footnote{%
       The \codr{!} indicates that \codr{panic!} is a macro.
     } which will terminate the program.
     This macro is used throughout the standard library e.g.\ for an access over the limits of an array.
-    Another wrapper type that is used throughout the standard library is \codr{Option<T>}.
+    Another wrapper type that is used throughout the standard library is \OptionT.
     The main difference to \codr{Result} is, that \codr{Option} can only hold a valid value or non at all.
     An wrapped value is created thought \codr{Some(val)} or \codr{None}.
 
