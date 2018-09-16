@@ -1,0 +1,122 @@
+\begin{tikzpicture}
+  \begin{axis}[
+      width=.475\linewidth,
+      enlargelimits=0.05,
+      xlabel = Seconds,
+      ylabel = Megabyte,
+      legend pos=south east,
+      legend style={
+          draw=none,
+        },
+      legend cell align=left,
+    ]
+    \pgfplotstableset{
+      create on use/nstos/.style={
+          create col/expr={\thisrow{ns}*0.000000001}},
+      create on use/BtoMb/.style={
+          create col/expr={\thisrow{bytes}*0.000001}}
+    }
+    \addplot+[
+      MediumVioletRed,
+      forget plot,
+    ]
+    table [
+        x=nstos,
+        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
+        col sep=comma,
+        mark=,
+      ]
+      {data/cpp_total_20.csv}
+    coordinate [pos=0.5] (CmbA)
+    coordinate [pos=0.8] (CmbB)
+    ;
+    \xdef\cmbslope{\pgfplotstableregressiona}
+    \addplot+[
+      MediumVioletRed,
+      only marks,
+      mark=x,
+      mark size=2.9pt,
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma
+      ]
+      {data/cpp_total_20.csv};
+    \addlegendentry{C++ MT}
+
+    \addplot+[
+      MediumPurple,
+      forget plot,
+    ]
+    table [
+        x=nstos,
+        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
+        col sep=comma,
+        mark=,
+      ]
+      {data/cpp_single_total_20.csv}
+    coordinate [pos=0.3] (CSmbA)
+    coordinate [pos=0.4] (CSmbB)
+    ;
+    \xdef\csmbslope{\pgfplotstableregressiona}
+    \addplot+[
+      MediumPurple,
+      only marks,
+      mark=+,
+      mark size=2.9pt,
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma,
+      ]
+      {data/cpp_single_total_20.csv};
+    \addlegendentry{C++ ST}
+
+    \addplot+[
+      SteelBlue,
+      forget plot,
+    ]
+    table [
+        x=nstos,
+        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
+        col sep=comma,
+        mark=,
+      ]
+      {data/rust_total_20.csv}
+    coordinate [pos=0.35] (RmbA)
+    coordinate [pos=0.45] (RmbB)
+    ;
+    \xdef\rmbslope{\pgfplotstableregressiona}
+    \addplot+[
+      SteelBlue,
+      only marks,
+      mark=o,
+      mark size=2.9pt,
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma,
+        header=true,
+      ]
+      {data/rust_total_20.csv};
+    \addlegendentry{Rust}
+
+    \begin{pgfonlayer}{fg}
+      \draw[SlateGray]
+      (CmbA) -| (CmbB)
+      node [black,pos=0.75,anchor=west]
+        {\pgfmathprintnumber[fixed,precision=2]{\cmbslope}$\frac{Mb}{s}$};
+      \draw[SlateGray]
+      (RmbA) -| (RmbB)
+      node [black,pos=.75,anchor=west]
+        {\pgfmathprintnumber[fixed,precision=2]{\rmbslope}$\frac{Mb}{s}$};
+      \draw[SlateGray]
+      (CSmbA) -| (CSmbB)
+      node [black,pos=.75,anchor=west]
+        {\pgfmathprintnumber[fixed,precision=2]{\csmbslope}$\frac{Mb}{s}$};
+    \end{pgfonlayer}
+  \end{axis}
+\end{tikzpicture}

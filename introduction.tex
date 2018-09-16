@@ -41,7 +41,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     The basic idea is to create some kind of type erasure.
     How that is achieved depends on the target language.
 
-    \subsection{\glsentrytext{skill} Internals}\label{ssec:skillInter}
+    \subsection{\glsentrytext{skill} Internals}\label{sec:skillInter}
     \begin{wrapfigure}{r}{0.3\textwidth}%
       \centering
       \begin{tikzpicture}
@@ -85,7 +85,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     \end{wrapfigure}
     This section will focus on internals of \gls{skill}, meaning that de-/serialisation and runtime system will be touched.
 
-    \subsubsection{Reading and Writing}\label{sssec:rwSkill}
+    \subsubsection{Reading and Writing}\label{sec:rwSkill}
       As seen in \autoref{img:skilllayout} a \gls{skill} file is made up of multiple blocks\footnote{
       }.
       Each of these blocks is made up of a string block and a type block.
@@ -144,7 +144,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
   The focus is on the elements and features that are important to this thesis and with that non exhaustive.
   For a more in-depth and up to data introduction it is strongly advised to refer to the official documentation.
 
-  \subsection{Borrows and Lifetimes}\label{ssec:rustBorr}
+  \subsection{Borrows and Lifetimes}\label{sec:rustBorr}
     At the core of the memory and concurrency goal stands the \emph{borrowing} mechanic.
     Borrowing can be thought of as \emph{taking a reference} in C++.
     Like all variables borrows are by default \emph{immutable} or in C++ words \codc{const}.
@@ -213,7 +213,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     At this point it has to be noted thou that lifetimes can only be applied to borrows.
     In other words they can't be used to say something about the lifetime of memory itself.
 
-  \subsection{Structs, Traits and Generics}\label{ssec:stg}
+  \subsection{Structs, Traits and Generics}\label{sec:stg}
     The fundamental pieces of the Rust \gls{oop} model are \structs, \traits and \codr{impl} blocks.
     \structs are equivalent to C \codc{struct}s as they are a collection of fields.
     \traits can be thought of as Java \codj{interface}s, they dictate a set of functions that have to be implemented by a type that provides a certain \trait.
@@ -274,7 +274,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
     Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}.
     This might introduce additional slowdown as more cache is need per object.
 
-  \subsection{Errors and Null}\label{ssec:rustErr}
+  \subsection{Errors and Null}\label{sec:rustErr}
     For errors, failures or exceptions Rust doesn't use \emph{exceptions}\footnote{%
       This is partially true as \codr{panic}s can be caught\ldots
     }.

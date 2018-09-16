@@ -110,7 +110,7 @@
   examiner={Prof.\ Dr.\ Erhard Plödereder},
   supervisor={Dr.\ Timm Felden},
   startdate={April 11, 2018},
-  enddate={Octobre 11, 2018},
+  enddate={October 11, 2018},
 ]{scientific-thesis-cover}
 
 %---------------------------------
@@ -126,6 +126,7 @@
 \usepackage{tikz-qtree}
 \usepackage{pgfplots}
 \usepackage{wrapfig}
+\usepackage{pgfplotstable}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,6 +156,13 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{trees}
 \usetikzlibrary{shapes}
+
+%---------------------------------
+% PGF Layer
+%---------------------------------
+\pgfdeclarelayer{bg}    % declare background layer
+\pgfdeclarelayer{fg}    % declare background layer
+\pgfsetlayers{bg,main,fg}  % set the order of the layers (main is the standard layer)
 
 %---------------------------------
 % Intex date format
@@ -436,17 +444,27 @@ moredelim=[s][{}]{\#[}{]},
   \expandafter\def\csname\tmp\endcsname{\codr{#1}\xspace}%
   \expandafter\def\csname\tmp s\endcsname{\codr{#1}s\xspace}%
 }
+\LstCut{A}
+\LstCut{B}
 \LstCut{CastAble}
+\LstCut{FieldDeclaration}
 \LstCut{FieldDefinition}
 \LstCut{FileReader}
+\LstCut{File}
+\LstCut{Foo}
 \LstCut{ForeignFieldData}
 \LstCut{ForeignFieldDeclaration}
 \LstCut{Foreign}
 \LstCut{Node}
 \LstCut{Option<T>}
+\LstCut{PartsMaker}
+\LstCut{PoolMaker}
+\LstCut{PoolProxy}
+\LstCut{Pool}
 \LstCut{Ptr<T>}
 \LstCut{Rc<RefCell<T>>}
 \LstCut{Rc<T>}
+\LstCut{Read}
 \LstCut{RefCell<T>}
 \LstCut{SkillFileBuilder}
 \LstCut{SkillFile}
@@ -454,22 +472,23 @@ moredelim=[s][{}]{\#[}{]},
 \LstCut{SkillString}
 \LstCut{StringPool}
 \LstCut{String}
-\LstCut{open()}
-\LstCut{Pool}
-\LstCut{UserPartsMaker}
-\LstCut{PoolProxy}
-\LstCut{PartsMaker}
-\LstCut{PoolMaker}
-\LstCut{FieldDeclaration}
-\LstCut{UserFieldDeclaration}
-\LstCut{static}
 \LstCut{T}
+\LstCut{UnsafeCell<T>}
+\LstCut{UserFieldDeclaration}
+\LstCut{UserPartsMaker}
 \LstCut{UserTypePool}
 \LstCut{UserType}
 \LstCut{U}
 \LstCut{Weak<T>}
+\LstCut{default}
 \LstCut{enum}
+\LstCut{for}
+\LstCut{fun()}
 \LstCut{id}
+\LstCut{match}
+\LstCut{open()}
+\LstCut{self}
+\LstCut{static}
 \LstCut{struct}
 \LstCut{trait}
 

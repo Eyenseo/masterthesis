@@ -74,13 +74,13 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
       \caption{Rust, no Cycles Allowed}\label{lst:cycles}
     \end{figure}
 
-    \autoref{lst:cyclesTwo} uses the \codr{Option} wrapper introduced in \autoref{ssec:rustErr}.
+    \autoref{lst:cyclesTwo} uses the \codr{Option} wrapper introduced in \autoref{sec:rustErr}.
     This allows the creation of the initial \Node object \codr{a}.
     It is further possible to assign the root object \codr{a} to the child object \codr{b}.
     But from that point on problems appear.
     First of all does \codr{b} not live long enough -- this is the direct result of the lifetime specifier.
     Secondly has \codr{b} to be assigned to \codr{a.next} and with that needs \codr{a} to be mutable.
-    This should sound familiar to the problems shown in \autoref{ssec:rustBorr}.
+    This should sound familiar to the problems shown in \autoref{sec:rustBorr}.
     Since \codr{a} is already borrowed by \codr{b.next}, \codr{a} can't be borrowed again mutable to assign \codr{b} to it.
 
   \subsection{Pointers in Rust}
@@ -143,7 +143,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     Line 6 and 7 prove that the safety rules of rust have been broken, as it is possible to use both \codr{sm} and \codr{sm2} in methods that mutate \codr{s}.
     With these rules broken also thread safety comes undone and with that most of the incentive to use Rust is lost.
 
-  \subsection{Memory Arenas and Cells}\label{ssec:cell}
+  \subsection{Memory Arenas and Cells}\label{sec:cell}
     \codr{UnsafeCell<T>} is a wrapper type from Rusts standard library.
     This wrapper allows to change the contained data without having to be mutable.
     What that basically means is, that code that uses an \codr{UnsafeCell<T>} is vulnerable to most issues that Rust wants to prevent.
@@ -183,7 +183,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     It is possible to have any number of \RcTs and \WeakTs to the same \T.
     If there is more than one \RcT or a \WeakT to the same \T it is only possible to access \T in an immutable way.
     Further can \RcT instances be downgraded to \WeakT and if the strong count has not yet reached zero it is possible to upgrade \WeakT instances to \RcT.
-    This means that this approach suffers from the same issue that was encountered in \autoref{ssec:cell}.\autocite{rust-doc}
+    This means that this approach suffers from the same issue that was encountered in \autoref{sec:cell}.\autocite{rust-doc}
 
     The solution to this issue is to use an additional wrapper \RcRefCellT.
     \RefCellT uses internally \codr{UnsafeCell<T>} and provides the means to enforce the borrowing rules and thread-safety guarantees.
@@ -328,7 +328,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     They would be implemented for a trait bound to allow the user to implement the functionality only once.
     % TODO example ?
 
-  \subsection{Traits and Black Magic}\label{ssec:magic}
+  \subsection{Traits and Black Magic}\label{sec:magic}
     If a type hierarchy, as seen in \autoref{lst:inheritanceJava}, has to be realized in Rust another option is to use \traits and would result in something akin to \autoref{lst:inheritanceTrait}.
     The `real' types have the suffix \codr{Proper} and the access interfaces have the original type name.
     This improves the convenience for the user of the code as the user will most of the time have to use the trait objects.
@@ -371,7 +371,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     \end{figure}
 
     To solve these two issues a \codr{cast} function will have to be created that is able to create a trait object from another.
-    In \autoref{ssec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \codr{cast} function.
+    In \autoref{sec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \codr{cast} function.
     The first field of a trait object is the data pointer to the \struct -- copying the pointer is no issue.
     However the second field is more difficult to fill as the correct vtable pointer has to be created.
     Fortunately Rust allows the creation of a trait object to a \codr{null} pointer.
@@ -468,7 +468,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
       Since Rust is very focused on safety it would be strange to allow such an hazard in the \gls{api}.
 
     \subsubsection{Error and Handling}
-      Since Rust doesn't support exceptions return codes are the predominant way to report issues (introduced in \autoref{ssec:rustErr}).
+      Since Rust doesn't support exceptions return codes are the predominant way to report issues (introduced in \autoref{sec:rustErr}).
       The issue with return codes is, that they provide not a lot of context by themself.
       This especially becomes apparent if the same code originates from different places in the code.
       To improve the usability of these return codes the \codr{failure} crate\autocite{rust-failure} has been chosen to enhance the error codes.
@@ -499,7 +499,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
       Because of the strict borrow and ownership rules of Rust the type pools use again composition, for the deserialisation of the user types.
       The type that implements these features is a \codr{PartsMaker} that implements a \trait that allows the creation of the \FieldDefinitions for the user types as well as the creation of new instances.
       The \trait can be given `freely' to other functions that can not know the concrete type of the pool.
-      The \FieldDefinition creation code is run in the second phase of the type block deserialisation (introduced in \autoref{ssec:skillInter}).
+      The \FieldDefinition creation code is run in the second phase of the type block deserialisation (introduced in \autoref{sec:skillInter}).
       Because of that the \codr{PartsMaker} function is also the place where all checks for the field definition happen.
 
     \subsubsection{Field Declarations}
@@ -514,7 +514,7 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     The memory footprint could be reduced by using a spare array at the trade-off for lookup speed.
     % TODO mention evaluation or implementation for hashmap comparison
     The matrix uses \codr{Option<VTable>} instances as elements -- if the value is \codr{None} the cast is invalid, otherwise the correct vtable is obtained.
-    The generator produces the correct vtables with the technique introduced in \autoref{ssec:magic}.
+    The generator produces the correct vtables with the technique introduced in \autoref{sec:magic}.
     For the lookup to be efficient all user types as well as \codr{Foreign} and \SkillObject have to be assigned an index into the matrix.
     % TODO static trait functions bullshit
 

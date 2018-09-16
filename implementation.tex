@@ -5,7 +5,7 @@
 This section will only highlight a few implementation details that seem interesting and unique.
 Most of the implementation is only interesting for the Rust syntax as most data structures and algorithms were ported from C++.
 
-\section{\texttt{Ptr<T>} for Graphs and Casting}
+\section{\texttt{Ptr<T>} for Graphs and Casting}\label{sec:ptr}
   This section will focus on the implementation of the discussed solutions of \autoref{sec:graph} and \autoref{sec:inheritance}.
   The wrapper is named \PtrT since it provides the functionality of working with the type \T almost as if it was being pointed to by a pointer without restrictions.
   This means more concrete that this wrapper enables \T to be passed around with reference counting and runtime borrow rules checking while being able to be cast to different types and trait objects.
@@ -118,7 +118,7 @@ Most of the implementation is only interesting for the Rust syntax as most data 
     \item
           The next step is the creation and initialization of the \StringPool by parsing the string block.
     \item
-          As described in \autoref{sssec:rwSkill} is the next part to parse the type block.
+          As described in \autoref{sec:rwSkill} is the next part to parse the type block.
           \begin{enumerate}
             \item
                   To do that the \PoolMaker is needed as this code is generic and doesn't know what \UserTypePools can be created.
