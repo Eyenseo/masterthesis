@@ -29,7 +29,6 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
   The \FileReader is responsible for the creation of the \StringPool, \UserTypePools and the \FieldDeclarations.
   The creation of the instances falls back to the pools.
   The deserialisation of the fields of the instances is the responsibility of the \FieldDefinitions as only they know what to do and if the deserialisation can be deferred until the first access or write of the instance.
-  % TODO foreshadow the `real` graph ?
 
 \section{Graphs}\label{sec:graph}
   \gls{skill} allows the creation of graphs with its references as most language do.
@@ -206,8 +205,6 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     It is very important that it is \WeakT and not \RcT as \RcT would result in a memory leak.
     This is the case as \codr{a} and \codr{b} would keep the strong counter above zero for each other.
 
-    % TODO refere to evaluation for slowdown?
-
   \subsection{Indexes as Pointers Replacement}
     Another solution for graphs is something that is very similar to \glspl{ecs}.
     In an \gls{ecs} an `object' is represented through an entity that is mostly just an identifier like an integer.
@@ -326,7 +323,6 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     If the type hierarchy is deep enough a simple field access would have to be hidden away behind an interface since the chaining of children or parents would become unbearable.
     This interface is also necessary for the user to implement functions for the valid \structs.
     They would be implemented for a trait bound to allow the user to implement the functionality only once.
-    % TODO example ?
 
   \subsection{Traits and Black Magic}\label{sec:magic}
     If a type hierarchy, as seen in \autoref{lst:inheritanceJava}, has to be realized in Rust another option is to use \traits and would result in something akin to \autoref{lst:inheritanceTrait}.
@@ -446,11 +442,11 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
 
       To conform to these requirements and the need for an id for each string -- that is obtainable through the string -- a wrapper is needed for \String.
       Since inheritance is not an option \String is a component of \SkillString and \SkillString has to provide a method to obtain an immutable reference to the contained \String to be somewhat compatible with other libraries.
-      Since all \SkillStrings can be marked for deletion by the user it is important for the \StringPool to remember which strings are used by types and fields of the deserialized file.
-      % TODO add stuff?
+      Since the removal of a \SkillString that represents a literal used by a type would lead to problems there is no way for the user to delete a \SkillString explicitly.
+      The explicit deletion is replaced with automatic pruning on writing.
+      Since all \SkillString have to be wrapped in an \RcT the counters can be used to check weather the \SkillString has to be serialized or can be discarded.
 
     \subsubsection{Foreign Types and Fields}
-      % TODO move to common section
       There are special types are used if the filed or type encountered upon deserialisation was not known at the time the code was generated.
       The fields themself are represented through an \enum which can be thought of as a tagged \codc{union}.
       The foreign field definitions are somewhat special in that they deserialise their data only if it has to be written.
@@ -516,6 +512,5 @@ These key points and their impact will be reviewed in \autoref{chap:eval} in mor
     The matrix uses \codr{Option<VTable>} instances as elements -- if the value is \codr{None} the cast is invalid, otherwise the correct vtable is obtained.
     The generator produces the correct vtables with the technique introduced in \autoref{sec:magic}.
     For the lookup to be efficient all user types as well as \codr{Foreign} and \SkillObject have to be assigned an index into the matrix.
-    % TODO static trait functions bullshit
 
 \end{document}

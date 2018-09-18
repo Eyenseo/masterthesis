@@ -102,13 +102,13 @@ Most of the implementation is only interesting for the Rust syntax as most data 
   Since the \Pool has to be able to work with other \Pools the \PoolProxy had to be created.
   The reason for that is, that \UserTypePool instances aren't \Pools, so there has to be an interface that allows access to the \Pool components in the \UserTypePools.
 
-  A detail that might seam strange is that \PoolProxy and \PoolMaker are responsible to create \UserFieldDeclarations instances.
+  A detail that might seem strange is that \PoolProxy and \PoolMaker are responsible to create \UserFieldDeclarations instances.
   The \PartsMaker is used by the \Pool to create the \UserFieldDeclaration instances that are to be deserialized.
   The \PoolProxy on the other hand is needed to create the \UserFieldDeclaration instances that are missing from the serialized data but were present in the specification.
-
-  % TODO move to eval
-  %While there are only two cycles in the has-relationships many more can be seen if one were to follow the usage-relationships.
-  %Some of those would not have been necessary if not for the Rust type system that forb
+  The reason for this is that the rust type system forces the code to adapt lesser relationships which can be seen by following the usage-relationships.
+  While there are only two cycles in the has-relationships many more can be seen if one were to follow the usage-relationships.
+  What that means is that the types are still as dependent on other types and the only thing that changed was the data flow.
+  Most of the time the data flow became more awkward through the loose relationships than it would have been with a has-relationships.
 
   A walk through of the architecture is as follows to give a better understanding pf the interaction of the components of the architecture:
   \begin{enumerate}

@@ -57,6 +57,7 @@ The following sections will focus on on the reasons for the missing parallelism,
   And while it is true that an array out of bounds access will not result in a segfault, it will result in a \codr{panic} which is not much better.
   Similarly is a deadlock in a wrapper for borrow checking at runtime not \emph{thread safe}.
   A fairer assessment of Rust would be to say \enquote{Rust \emph{wants to be} a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.} than that it \emph{is}, as not all goals have been achieved yet or only to a questionable degree.
+  \enquote{Like C++, Rust takes zero-cost abstractions as one of its core principles: none of Rust’s abstractions impose a global performance penalty, nor is there overhead from any runtime system in the traditional sense.}\autocite{rust-faq} might be true, but also not completely honest.
 
 \section{Rust Oddities}
   This section will focus on more oddities and questionable design choices that have been encountered while working with Rust.

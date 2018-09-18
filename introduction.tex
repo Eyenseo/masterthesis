@@ -1,4 +1,5 @@
 \documentclass[thesis]{subfiles}
+
 \begin{document}
 
 \chapter{Introduction}
@@ -120,13 +121,7 @@ Through the guarantees of Rust (see \autoref{sec:rust}) the produced code will b
       Like the type block the fields of the types are managed by \cod{FieldDeclaration}s and not the type pools themself.
       This split is not only important for the separation of concerns but also for code generation and the ability to parallelize the code.
 
-\section{Rust}
-  \label{sec:rust}
-  % TODO mention
-  % Like C++, Rust takes zero-cost abstractions as one of its core principles:
-  % none of Rust’string abstractions impose a global performance penalty, nor is
-  % there overhead from any runtime system in the traditional sense.
-
+\section{Rust}\label{sec:rust}
   The official Rust language website describes the language as;
   \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rust-org}
   It presents itself mostly as a \emph{safe} language that should be considered as substitute for C, C++ and other systems programming languages.
