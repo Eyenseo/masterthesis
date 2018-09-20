@@ -73,6 +73,34 @@ Most of the implementation is only interesting for the Rust syntax as most data 
     That means that even if a \struct is cast to another \struct a trait object is created and the vtable will be inserted into it as if \U was indeed a trait object.
     Fortunately the vtable is at index 1 and the data 0 because \codr{transmute} will cut the additional pointer off in case \U is indeed a \struct type.
 
+\section{Generated User Type}
+  \autoref{lst:userType} shows the generated code of the user type \Age.
+  The fields in the \Age \struct that are prefixed with \codr{z_} are internal fields.
+  Fields that the user named with a leading \codr{z} and non alphabetic or numeric characters are escaped with an additional \codr{z}.
+  The \skillid is used as id for the object at the serialization phase or for the user to access a particular object.
+  The \typeid is the index into the vtable lookup table what is used to cast the objects.
+  \foreigndata is a vector that stores data of fields that were not at generation time.
+  As previously mentioned is this data inaccessible for the user.
+  Finally is \age the filed that the user specified in the specification.
+
+  To be accessible outside of this module \age needs accessors that are declared in the \AgeObject \trait.
+  Depending on the type of the field different return types are chosen -- e.g. for a map a reference is returned.
+  \AgeObject also inherits \SkillObject and with that has to implement it and also the \Deleteable \trait.
+  The \Deleteable trait provides an interface that allows the objects to be marked for deletion.
+  This interface should not be visible for the user but there is no way to do that in Rust -- see \autoref{sec:traitVisibility}.
+
+  Additionally to the types present in the users specification \Age also implements \ForeignObject that `belongs' to \Foreign.
+  The \Foreign type is exclusively used to create an interface that allows the de-/serialization of foreign types and fields.
+
+  \lstinputlisting[
+    style=myEnvStyle,
+    language=Rust,
+    float,
+    floatplacement=ht,
+    caption={Generated User Type Age},
+    label={lst:userType},
+  ]{data/userType.rs}
+
 \section{Actual Architecture}
   \autoref{fig:archDesire} shows the desired, albeit abstract, architecture for the generated code.
   The architecture is however not implementable in exactly that way in Rust.

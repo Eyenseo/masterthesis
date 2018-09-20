@@ -137,7 +137,7 @@ The following sections will focus on on the reasons for the missing parallelism,
       \usebox{\staticOne}\hfill%
       \usebox{\staticTwo}\\%
       \usebox{\staticThree}
-      \caption{Emulated Inheritance with Traits}\label{lst:static}
+      \caption{Static Functions for Traits}\label{lst:static}
     \end{figure}
 
   \subsection{Immutability Resolution}
@@ -147,7 +147,7 @@ The following sections will focus on on the reasons for the missing parallelism,
     Coming from a C++ background the lack of the \codc{const} feature reduces the expressiveness greatly.
     And to a certain degree it also influences the safety of the program.
 
-  \subsection{Trait Visibility Requirements}
+    \subsection{Trait Visibility Requirements}\label{sec:traitVisibility}
     \autoref{lst:traitvis} shows a very unfortunate design decision of Rust.
     \codr{trait A} is supposed to expose an \gls{api} to the crate, not intended for the user.
     \codr{trait B} should require \A to be implemented -- which should be legal as no type is leaked outside of the implementation of \B.
