@@ -336,6 +336,39 @@ The covered parts follow mostly the reference implementations.
     Another consequence of \PtrT is, that the specification independent code can not be a standalone create that can be used as library.
     \PtrT depends on the lookup table which has to be generated.
 
+  \subsection{Optimisations}
+    Since \PtrT is used in many components some time was spent to see how it could be made faster.
+    The next sections will present optimisations that were thought of.
+
+    \subsubsection{Lookup vs Conditionals}
+      The initial version of \PtrT used conditionals to check whether the cast is valid to make or not.
+      It would then create the vtable pointer as introduced in \autoref{sec:magic}.
+      The conditional logic was contained in a \trait that was implemented by a macro that only needed the valid type names.
+      That made \PtrT reusable as in other projects.
+
+      In an attempt to improve the performance of \cast the final implementation uses a lookup table.
+      The lookup table contains the vtable pointers and absence of a pointer indicates an invalid cast.
+      A performance improvement could however not be measured.
+      An explanation for that is, that the trait objects are still created and that branch-prediction was in this case roughly as efficient as an access into a 2D array.
+
+    \subsubsection{Disabling Reference Counting and Borrow Checking}
+      A more brutal optimisation was an additional type to \PtrT.
+      It was named \HazardPtrT as there was nothing safe about that type.
+      \HazardPtrT is constructed from a \PtrT and because it was declared in the same module as \PtrT it is able to access the private fields of \PtrT.
+      In the constructor \HazardPtrT would then take the pointer to the value of \PtrT.
+      This allowed to skip the reference counting and the borrow rules checking.
+      Additionally were the bounds on \HazardPtrT changed to include only \structs.
+      With that it was possible to create a \cast function that only casts a pointer to another pointer -- no support for trait object casts is necessary in the internal code.
+      Further were these casts unchecked.
+      \HazardPtrT was then applied to internal code that used \PtrT to serialise field data.
+      In performance tests \HazardPtrT was $\times 1.2$ faster than \PtrT.
+
+      \HazardPtrT was not kept however, as its unsafe nature goes strongly against the values that Rust represents.
+      This experiment showed that wrapper types used throughout the code base (\RcT, \RefCellT) do inflict a significant performance penalty.
+      \PtrT instances are used by pools that contain a shared vector of \PtrT instances (\codr{Rc<RefCell<Vec<Ptr<T>>>>}\footnote{
+        \codr{Rc<RefCell<Vec<Ptr<T>>>>} $\approx$ \codr{Rc<RefCell<Vec<Rc<RefCell<T>>>>>}
+      }) which means that another speedup could be gained if these wrappers were unnecessary.
+
 \section{Binding Architecture}
   This section will discuss the created architecture of generated bindings and the changes made to the one introduced in \autoref{sec:skillArch}.
   While the generated code is a central point of this thesis, the generator itself is not so much.

@@ -32,7 +32,8 @@ To execute casts to a trait a vtable pointer is necessary, which is also contain
 
 The performance of Rust bindings is $\times 4.6$ slower than the parallelized C++ version.
 This is not only the result of the missing parallelism but also because of the enforcement of borrow rules at run time.
-Since most time was spent searching for solutions for the previously mentioned issues and an initial Rust implementation there are opportunities to speed up the Rust bindings.
-For a parallelized version the architecture and wrapper types would have to be changed drastically, if there exists such a architecture.
+Since most time was spent searching for solutions for the previously mentioned issues and an initial Rust implementation there are opportunities to optimise Rust bindings.
+For a parallelized version the architecture and wrapper types would have to be changed drastically.
+One option for such an architecture would be to use pointers throughout the internal code which would mean that that code would suffer from the same issues as C and C++.
 
 \end{document}
