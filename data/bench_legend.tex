@@ -1,0 +1,24 @@
+\begin{tikzpicture}
+  \begin{customlegend}[
+      legend columns=-1,
+      legend style={
+          draw=none,
+          column sep=1ex,
+          only marks,
+          thick,
+        },
+      legend entries={
+          GCC MT,
+          GCC ST,
+          Clang MT,
+          Clang ST,
+          Rust,
+        }
+    ]
+    \addlegendimage{MediumVioletRed,mark=x}
+    \addlegendimage{MediumPurple,mark=+}
+    \addlegendimage{MediumVioletRed!70!black,mark=diamond}
+    \addlegendimage{MediumPurple!70!black,mark=square}
+    \addlegendimage{SteelBlue,mark=o}
+  \end{customlegend}
+\end{tikzpicture}

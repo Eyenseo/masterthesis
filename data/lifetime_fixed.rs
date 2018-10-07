@@ -1,11 +1,11 @@
 struct Foo<'a> {
-  s: &'a String,
+  rs: &'a String,
 }
-pub fn main() {
+
+fn main() {
   let foo = {
     let s = String::from("Wolle");
-    Foo { s: &s } // `s` does not
-                  // live long
-                  // enough
+    Foo { rs: &s } // `s` does not
+               // live long enough
   };
 }

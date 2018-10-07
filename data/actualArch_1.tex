@@ -1,17 +1,12 @@
-\begin{tikzpicture}[
-    scale=0.775,
-    struct/.style = {
-        shape=rectangle,  draw,
-        align=center, font=\ttfamily, minimum height=1.825em,
-      },
-    trait/.style = {
-        struct, densely dashed,
-      },
-    generated/.style={
-        rounded corners,
-      },
-  ]
+\begin{tikzpicture}[scale=0.775]
   \begin{scope}[
+      struct/.style = {
+          shape=rectangle, rounded corners, draw,
+          align=center, font=\ttfamily, minimum height=1.825em,
+        },
+      trait/.style = {
+          struct, densely dashed,
+        },
       edge from parent/.style = {
           draw=none,
         },
@@ -22,22 +17,23 @@
     \Tree
     [
     [
-    .\node[struct,generated](SkillFile){SkillFile};
+    .\node[struct](SkillFile){SkillFile};
     [
     .\node[struct](StringPool){StringPool};
     [
+    .\node[struct](String){String};
     [
-        [
-            .\node[trait](Deleteable){Deleteable};
-          ]
+    [
+        .\node[trait](Deleteable){Deleteable};
       ]
     ]
+    ]
     ][
-    .\node[struct,generated](UserTypePool){UserTypePool};
+    .\node[struct](UserTypePool){UserTypePool};
     [
     .\node[trait](PoolProxy){PoolProxy};
     [
-    .\node[struct,generated](UserType){UserType};
+    .\node[struct](UserType){UserType};
     [
     .\node[trait](SkillObject){SkillObject};
     ]
@@ -45,15 +41,15 @@
     ][
     .\node[struct](Pool){Pool};
     [
-    .\node[struct,generated](UserFieldDeclaration){UserFieldDecl.};
+    .\node[struct](UserFieldDeclaration){UserFieldDecl.};
     [
-    .\node[trait,generated](UserTypeObject){UserTypeObject};
+    .\node[trait](UserTypeObject){UserTypeObject};
     ]
     ]
     ]
     ]
     [
-    .\node[struct,generated](UserPartsMaker){UserPartsMaker};
+    .\node[struct](UserPartsMaker){UserPartsMaker};
     [
     .\node[trait](PartsMaker){PartsMaker};
     [
@@ -65,7 +61,7 @@
     ]
     ]
     ][
-    .\node[struct,generated](SkillFileBuilder){SkillFileBuilder};
+    .\node[struct](SkillFileBuilder){SkillFileBuilder};
     [
     .\node[trait](PoolMaker){PoolMaker};
     [
@@ -83,10 +79,10 @@
     >={Stealth[black]},
     every node/.style={font=\ttfamily,scale=0.775},
     every edge/.style={line width=.3mm},
-    use/.style={->[SeaGreen],draw,SeaGreen,dotted,>={Latex}},
+    use/.style={->[DarkSeaGreen],draw,DarkSeaGreen,dashed,>={Latex}},
     create/.style={->[Coral],draw,Coral,dashed,>={Latex}},
     has/.style={->[SteelBlue],draw,SteelBlue,>={Latex}},
-    traitl/.style={->[DimGray],draw,DimGray,>={Latex[line width=.2mm, open]}},
+    trait/.style={->[DimGray],draw,DimGray,>={Latex[line width=.2mm, open]}},
     ]
     % NOTE has
     \path (SkillFileBuilder) edge[has,bend right=10] (UserTypePool);
@@ -102,6 +98,8 @@
     \path (Pool) edge[has] (PoolProxy);
     \path (Pool) edge[has,bend left=10] (FieldDeclaration);
     \path (Pool) edge[has] (PartsMaker);
+
+    \path (StringPool) edge[has] (String);
 
     \path (UserType) edge[has,out=340,in=160] (ForeignData);
     \path (UserType) edge[has,loop left, distance=.75cm] (UserType);
@@ -139,35 +137,27 @@
     \path (Pool) edge[use,bend right=30] (SkillFile);
 
     % NOTE trait
-    \path (SkillFileBuilder) edge[traitl] (PoolMaker);
-    \path (UserPartsMaker) edge[traitl] (PartsMaker);
-    \path (UserTypePool) edge[traitl,bend right=10] (PoolProxy);
-    \path (UserType) edge[traitl,bend right=5] (UserTypeObject);
-    \path (UserTypeObject) edge[traitl] (SkillObject);
-    \path (SkillObject) edge[traitl] (Deleteable);
-    \path (UserFieldDeclaration) edge[traitl] (FieldDeclaration);
+    \path (SkillFileBuilder) edge[trait] (PoolMaker);
+    \path (UserPartsMaker) edge[trait] (PartsMaker);
+    \path (UserTypePool) edge[trait,bend right=10] (PoolProxy);
+    \path (UserType) edge[trait,bend right=5] (UserTypeObject);
+    \path (UserTypeObject) edge[trait] (SkillObject);
+    \path (SkillObject) edge[trait] (Deleteable);
+    \path (UserFieldDeclaration) edge[trait] (FieldDeclaration);
+
 
     % NOTE Legend
-    \begin{scope}[shift={(-2.5cm,0.15cm)}]
-      \matrix[column sep=2em]{
-        {}
-         & \node[minimum height=2em,create,draw=none](LC){create};
-         & {}
-         & \node[minimum height=2em,has,draw=none](LH){has};
-         & {}
-         & \node[minimum height=2em,use,draw=none](LU){use};
-         & {}
-         & \node[ minimum height=2em, trait](LT){is/trait};
-         & \node[minimum height=2em,struct]{Common};
-         & \node[minimum height=2em,struct,generated]{Generated};
-        \\
-      };
-    \end{scope}
-    \path
-    (LT.west) edge[traitl] ++(-1,0)
-    (LC.west) edge[create] ++(-1,0)
-    (LH.west) edge[has] ++(-1,0)
-    (LU.west) edge[use] ++(-1,0)
-    ;
+    \coordinate[above left=.5 and 3.95of SkillFile](Legend1A);
+    \coordinate[above left=.5 and 4.7of SkillFile](Legend1B);
+    \coordinate[below=.5of Legend1A](Legend2A);
+    \coordinate[below=.5of Legend1B](Legend2B);
+    \coordinate[below=.5of Legend2A](Legend3A);
+    \coordinate[below=.5of Legend2B](Legend3B);
+    \coordinate[below=.5of Legend3A](Legend4A);
+    \coordinate[below=.5of Legend3B](Legend4B);
+    \path (Legend1A) edge[trait] (Legend1B) node[anchor=west,trait,draw=none]{is/trait};
+    \path (Legend2A) edge[create] (Legend2B) node[anchor=west,create,draw=none]{create};
+    \path (Legend3A) edge[has] (Legend3B) node[anchor=west,has,draw=none]{has};
+    \path (Legend4A) edge[use] (Legend4B) node[anchor=west,use,draw=none]{use};
   \end{scope}
 \end{tikzpicture}

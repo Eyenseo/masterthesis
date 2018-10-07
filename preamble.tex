@@ -156,6 +156,23 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{trees}
 \usetikzlibrary{shapes}
+\usetikzlibrary{matrix}
+
+\usetikzlibrary{external}
+\tikzexternalize
+\makeatletter
+\tikzset{%
+  external/system call={%
+      pdflatex %
+      \tikzexternalcheckshellescape %
+      -halt-on-error %
+      -interaction=batchmode %
+      -output-directory="latex.out" %
+      -jobname "\image" %
+      "\texsource"%
+    },
+}
+\makeatother
 
 %---------------------------------
 % PGF Layer
@@ -441,69 +458,167 @@ moredelim=[s][{}]{\#[}{]},
 
 \newcommand\LstCut[1]{%
   \makestring[\tmp]{#1}%
-  \expandafter\def\csname\tmp\endcsname{\codr{#1}\xspace}%
-  \expandafter\def\csname\tmp s\endcsname{\codr{#1}s\xspace}%
+  \expandafter\def\csname\tmp\endcsname{\cod{#1}\xspace}%
+  \expandafter\def\csname\tmp s\endcsname{\cod{#1}s\xspace}%
 }
-\LstCut{A}
+\LstCut{AgeObject}
 \LstCut{Age}
+\LstCut{Arc<T>}
+\LstCut{A}
 \LstCut{B}
 \LstCut{CastAble}
+\LstCut{default}
+\LstCut{Deleteable}
+\LstCut{enum}
 \LstCut{FieldDeclaration}
-\LstCut{FieldDefinition}
 \LstCut{FileReader}
+\LstCut{FileWriter}
 \LstCut{File}
 \LstCut{Foo}
+\LstCut{foreign_data}
 \LstCut{ForeignFieldData}
 \LstCut{ForeignFieldDeclaration}
+\LstCut{ForeignObject}
+\LstCut{ForeignPool}
 \LstCut{Foreign}
+\LstCut{for}
+\LstCut{fun()}
+\LstCut{F}
+\LstCut{gun()}
+\LstCut{HashMap}
+\LstCut{hun()}
+\LstCut{id}
+\LstCut{match}
+\LstCut{mod}
+\LstCut{Mutex<T>}
 \LstCut{Node}
+\LstCut{None}
+\LstCut{nun()}
+\LstCut{open()}
 \LstCut{Option<T>}
+\LstCut{panic}
 \LstCut{PartsMaker}
 \LstCut{PoolMaker}
 \LstCut{PoolProxy}
 \LstCut{Pool}
 \LstCut{Ptr<T>}
+\LstCut{pub(crate)}
+\LstCut{pub}
 \LstCut{Rc<RefCell<T>>}
 \LstCut{Rc<T>}
 \LstCut{Read}
+\LstCut{Ref<T>}
 \LstCut{RefCell<T>}
+\LstCut{RefMut<T>}
+\LstCut{RwLock<T>}
+\LstCut{self}
+\LstCut{Self}
+\LstCut{Send}
+\LstCut{Sized}
+\LstCut{skill_id}
+\LstCut{SkillFail}
 \LstCut{SkillFileBuilder}
 \LstCut{SkillFile}
 \LstCut{SkillObject}
 \LstCut{SkillString}
+\LstCut{Some<T>}
+\LstCut{Some}
+\LstCut{static}
+\LstCut{StringBlock}
 \LstCut{StringPool}
 \LstCut{String}
+\LstCut{struct}
+\LstCut{Sync}
+\LstCut{trait}
+\LstCut{type_id}
 \LstCut{T}
 \LstCut{UnsafeCell<T>}
 \LstCut{UserFieldDeclaration}
 \LstCut{UserPartsMaker}
 \LstCut{UserTypePool}
 \LstCut{UserType}
+\LstCut{use}
 \LstCut{U}
-\LstCut{Weak<T>}
-\LstCut{default}
-\LstCut{enum}
-\LstCut{for}
-\LstCut{fun()}
-\LstCut{id}
-\LstCut{match}
-\LstCut{open()}
-\LstCut{self}
-\LstCut{static}
-\LstCut{struct}
-\LstCut{trait}
-\LstCut{skill_id}
-\LstCut{type_id}
-\LstCut{foreign_data}
+\LstCut{Vec<T>}
+\LstCut{Vec}
 \LstCut{age}
-\LstCut{AgeObject}
-\LstCut{Deleteable}
-\LstCut{ForeignObject}
-\LstCut{Foreign}
+\LstCut{Cell<T>}
+\LstCut{x}
+\LstCut{cast()}
+\LstCut{TraitObject}
+\LstCut{y}
+\LstCut{unsafe}
+\LstCut{Weak<T>}
+
+%-------------------
+% Use Tikz to externalize lst pictures
+%-------------------
+\NewDocumentCommand{\LstTikzBox}{mO{.949\linewidth}mO{}}%
+{%
+\newsavebox{#1}%
+\begin{lrbox}{#1}%
+  \begin{tikzpicture}[every node/.style={inner sep=0,outer sep=0}]%
+    \node{%
+      \hspace*{18pt}%
+      \begin{minipage}{#2}%
+        \vspace*{-2pt}
+        \lstinputlisting[%
+          style=myEnvStyle,%
+          language=Rust,%
+          nolol=ture,%
+          #4%
+        ]{#3}%
+        \vspace*{-6pt}
+      \end{minipage}%
+      \hspace*{4pt}%
+    };%
+  \end{tikzpicture}%
+\end{lrbox}%
+}
+\NewDocumentCommand{\LstTikzFig}{ommmO{}}%
+{%
+  \IfNoValueTF{#1}{%
+    \edef\tmp{\csname#4\endcsname}%
+    \expandafter\LstTikzBox\tmp{#2}[#5]%
+    \begin{figure}[ht]%
+      \captionsetup{type=lstlisting}%
+      \centering%
+      \expandafter\usebox{\tmp}%
+      \caption{#3}\label{#4}%
+    \end{figure}%
+  }{%
+    \lstinputlisting[%
+      style=myEnvStyle,%
+      language=Rust,%
+      nolol=ture,%
+      caption={#3},
+      label={#4},
+      #5%
+    ]{#2}%
+  }%
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Environments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% custom legend environment to support horizontal legends
+\makeatletter
+\newenvironment{customlegend}[1][]{%
+  \begingroup
+  % inits/clears the lists (which might be populated from previous
+  % axes):
+  \pgfplots@init@cleared@structures
+  \pgfplotsset{#1}%
+}{%
+  % draws the legend:
+  \pgfplots@createlegend
+  \endgroup
+}%
+
+% makes \addlegendimage available (typically only available within an
+% axis environment):
+\def\addlegendimage{\pgfplots@addlegendimage}
+\makeatother
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Special treatment

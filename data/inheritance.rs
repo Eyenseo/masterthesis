@@ -7,9 +7,9 @@ impl B for Foo { fn gun(&self) {} }
 impl A for Foo { fn fun(&self) {} }
 
 fn main() {
-  let f = Foo;
-  let b: &B = &f;
-  b.fun();
-  let a: &A = b; // expected trait `A`
-                 //   found trait `B`
+  let x = Foo;
+  let rb: &B = &x;
+  rb.fun();
+  let ra: &A = rb; // expected
+      // trait `A` found trait `B`
 }

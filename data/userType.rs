@@ -34,7 +34,6 @@ impl foreign::ForeignObject for Age {
 }
 impl SkillObject for Age {
   fn skill_type_id(&self) -> usize { self.z_skill_type_id }
-
   fn get_skill_id(&self) -> usize { self.z_skill_id.get() }
   fn set_skill_id(&self, skill_id: usize) -> Result<(), SkillFail> {
     if skill_id == skill_object::DELETE {
@@ -46,7 +45,7 @@ impl SkillObject for Age {
 }
 impl Deletable for Age {
   fn mark_for_deletion(&mut self) {
-    self.z_skill_id.set(skill_object::DELETE);
+      self.z_skill_id.set(skill_object::DELETE);
   }
-  fn to_delete(&self) -> bool { self.z_skill_id.get() == skill_object::DELETE }
+  fn to_delete(&self) -> bool {self.z_skill_id.get()==skill_object::DELETE}
 }

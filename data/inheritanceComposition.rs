@@ -1,7 +1,7 @@
 struct A {
-    stefi: String,
+  stefi: String,
 }
 struct B {
-    sup: A,
-    dani: u32,
+  sup: A,
+  dani: u32,
 }

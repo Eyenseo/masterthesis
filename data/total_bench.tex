@@ -4,11 +4,6 @@
       enlargelimits=0.05,
       xlabel = Seconds,
       ylabel = Megabyte,
-      legend pos=south east,
-      legend style={
-          draw=none,
-        },
-      legend cell align=left,
     ]
     \pgfplotstableset{
       create on use/nstos/.style={
@@ -17,6 +12,7 @@
           create col/expr={\thisrow{bytes}*0.000001}}
     }
 
+    % GCC
     \addplot+[
       MediumVioletRed,
       forget plot,
@@ -44,7 +40,6 @@
         col sep=comma
       ]
       {data/cpp_total.csv};
-    \addlegendentry{C++ MT}
 
     \addplot+[
       MediumPurple,
@@ -73,8 +68,57 @@
         col sep=comma,
       ]
       {data/cpp_single_total.csv};
-    \addlegendentry{C++ ST}
 
+  % CLANG
+  \addplot+[
+      MediumVioletRed!70!black,
+      forget plot,
+    ]
+    table [
+        x=nstos,
+        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
+        col sep=comma,
+        mark=,
+      ]
+      {data/cpp_clang_total.csv};
+    \addplot+[
+      MediumVioletRed!70!black,
+      only marks,
+      mark=diamond,
+      mark size=2.9pt
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma
+      ]
+      {data/cpp_clang_total.csv};
+
+    \addplot+[
+      MediumPurple!70!black,
+      forget plot,
+    ]
+    table [
+        x=nstos,
+        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
+        col sep=comma,
+        mark=,
+      ]
+      {data/cpp_clang_single_total.csv};
+    \addplot+[
+      MediumPurple!70!black,
+      only marks,
+      mark=square,
+      mark size=2.9pt
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma,
+      ]
+      {data/cpp_clang_single_total.csv};
+
+    % RUST
     \addplot+[
       SteelBlue,
       forget plot,
@@ -103,7 +147,6 @@
         header=true,
       ]
       {data/rust_total.csv};
-    \addlegendentry{Rust}
 
     \begin{pgfonlayer}{fg}
       \draw[SlateGray]

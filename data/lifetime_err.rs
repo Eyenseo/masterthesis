@@ -1,11 +1,11 @@
 struct Foo {
   s: &String, // missing lifetime
-              // specifier
+        // specifier
 }
-
-pub fn main() {
+fn main() {
   let foo = {
     let s = String::from("Maria");
-    Foo { s: &s }
+    Foo { s: &s } // No semicolon
+                  //   returns
   };
 }
