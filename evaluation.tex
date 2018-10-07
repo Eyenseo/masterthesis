@@ -151,7 +151,8 @@ This is predominantly done through the provided test suits as well as a custom b
   The one thing that could be improved in a new specification would be that annotation fields do not have to use two byes to signal that the annotation is \codc{NULL}.
   Currently the pool id and object id is given and set to 0 but since there can't be a pool with id 0 the additional byte for the object id can be saved.
 
-  Another improvement that was made to the Rust and C++ implementation is the offset calculation in regards to the variable length integers, used by \cod{v64} and pointers.
+  Another improvement that was made to the Rust and C++ implementation is the offset calculation, reading and writing of variable length integers, used by \cod{v64} and pointers.
   The previous implementation checked the continuation bit by using two bit masks but since these languages support unsigned integers the comparison and masking can be replaced by a single smaller-than comparison.
+  Additionally was an integer removed from the reading function of variable length integer.
 
 \end{document}
