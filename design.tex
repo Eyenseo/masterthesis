@@ -84,7 +84,7 @@ The covered parts follow mostly the reference implementations.
     % TODO if Ptr<T> would use pointers for the internal bookkeeping ... would that be faster?
 
   \subsection{Memory Arenas and Cells}\label{sec:memoryArena}
-    \autoref{sec:cell} introduced \UnsafeCellT and companion types were introduced.
+    The \autoref{sec:cell} introduced \UnsafeCellT and companion types.
     This section will explore an option to use these to create a cyclic graph.
     In line 8 of \autoref{lst:memoryArena} a mutable \Vec is created, with two instances of \Node.
     In line 12 the first instance is assigned a new string literal.
@@ -460,7 +460,7 @@ The covered parts follow mostly the reference implementations.
       \age needs accessors to be accessible outside of this module which are declared in the \AgeObject \trait.
       \AgeObject also inherits \SkillObject and with that has to implement it and also the \Deleteable \trait.
       The \Deleteable trait provides an interface that allows the objects to be marked for deletion.
-      This interface should not be visible for the user but there is no way to do that in Rust -- see \autoref{sec:traitVisibility}.
+      This interface should not be visible for the user but there is no way to do that in Rust.
 
       Additionally to the types present in the users specification \Age also implements \linebreak
       \ForeignObject that belongs to the \Foreign \struct.

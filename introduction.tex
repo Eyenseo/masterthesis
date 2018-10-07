@@ -4,9 +4,10 @@
 
 \chapter{Introduction}\label{sec:intro}
 This thesis is about the design and implementation of a \gls{skill} generator that targets Rust.
-\gls{skill} is a collection of specifications and tools that enables users to write their applications in their preferred language while offering the ability to serialize the applications state platform and language independent\autocite{skill-tr}.
+\gls{skill} is a collection of specifications and tools that enables users to write their applications in their preferred language while offering the ability to serialize the applications state platform and language independently\autocite{skill-tr}.
 Language independence is achieved by offering multiple language targets for bindings that are generated from a user provided specification.
-Rust was chosen as it aims to be a new, safer, systems programming language that features a type system that offers thread safety guarantees that should allow for safe parallelism in the generated bindings\autocite{rust-org}.
+Rust was chosen as it aims to be a new, safer, systems programming language that features a type system that offers thread safety guarantees\autocite{rust-org}.
+These should allow for safe parallelism in the generated bindings.
 As reference implementation C++ was used, but C, Java and Scala were available too.
 This section will introduce \gls{skill} and Rust.
 Following that the design and implementation will be presented, as well as issues and solutions to them.
@@ -14,17 +15,17 @@ Then the results will be evaluated through functional and performance tests.
 
 \section{SKilL}\label{sec:skill}
   \gls{skill} encompasses a specification and binary format and tooling for them, that are used to generate code that enables users to serialise data of their software.
-  For this thesis serialization is used for both reading data from and writing data to files.
+  For this thesis serialization is used for both reading data from files and writing data to files.
   The next sections will give a brief overview of features, tooling and intended use of \gls{skill}.
   For more in depth information and the reasoning for design decisions it is advised to refer to \citetitle{skill-tr}\autocite{skill-tr} and \citetitle{skill-dis}\autocite{skill-dis}.
 
   \subsection{Motivation}
-    \gls{skill} has been created with the goal to create small serialised file sizes, fully reflective type encoding, type-safe storage of references, a rich type system, tools that work with partial specifications,
+    \gls{skill} has been created with the goal to provide small serialised file sizes, fully reflective type encoding, type-safe storage of references, a rich type system, tools that work with partial specifications,
     coding that is platform and language independent, upwards and downwards compatibility and lazy reading of unused data.
-    Additionally was the specification language kept simple by providing fundamental types that are building blocks of most, commonly used languages as well as single inheritance.
+    The specification language was kept simple by providing fundamental types that are building blocks of most, commonly used languages as well as single inheritance.
     These properties allow users to describe the data structures for a software system in a natural way.
     This specification is then used to generate a binding in a language chosen by users e.g.~C, C++, Java.
-    With that users are able to write their implementation in a language that they are most comfortable with.
+    With the generated binding users are able to write their implementation in a language that they are most comfortable with, by using the offered \gls{api}.
     \autocite{skill-tr}
 
   \subsection{Architecture}\label{sec:skillArch}
@@ -33,7 +34,7 @@ Then the results will be evaluated through functional and performance tests.
     Through \SkillFile instances the user can access a management object, from here on called \StringPool, that is responsible to create and manage \Strings in such a way that they can be serialised.
     Likewise are there management objects that are responsible for instances that are of a user defined type, from here on called \UserTypePools.
     These management objects are necessary for the management of the objects, as the runtime system has to know which objects are to be serialized.
-    Because of that deletion of instances is also handled through these management objects.
+    For this reason deletion of instances is also handled through these management objects.
     \autocite[107--112]{skill-dis}
 
     \begin{figure}[ht]
@@ -46,13 +47,13 @@ Then the results will be evaluated through functional and performance tests.
     They can't be encoded in the \UserTypePools at generation time, as there can be fields that have not been known at that time.
     Further have fields to be validated against the ones in the specification.
     For sterilization \FieldDeclarations have to know the \UserTypePools as \UserType fields can have \UserTypes as fields.
-    Similarly have they to know the \StringPool in case that a field is of type \String.
+    Similarly do they have to know the \StringPool in case that a field is of type \String.
     \autocite[144--148]{skill-dis}
 
     The \FileReader is responsible for the creation of the \StringPool, \UserTypePools and \FieldDeclarations.
     While the creation of \UserType instances is handled by \UserTypePools, before the reading of field data, \FieldDeclarations are responsible for the reading of field data.
-    This split is done as only \FieldDeclarations know how to read the data and if the reading can be deferred until the first access or write of the instance.
-    Additionally allows this two step process for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
+    This split is done as only \FieldDeclarations know how to read the data and if the reading can be deferred until the first access or writing of the instance.
+    Additionally allows this two step process potentially for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
     \autocite[148f.]{skill-dis}
 
   \subsection{Serialization}\label{sec:rwSkill}
@@ -103,7 +104,7 @@ Then the results will be evaluated through functional and performance tests.
     String sections first list the amount of strings, followed by the lengths of the strings, followed by the strings themself.
     This layout allows for easy reading and writing of the strings with \cod{mmap}\footnote{
       \cod{mmap} allows to map files and file sections to a memory location that can be accessed like an array.
-    } as well as parallelization.
+    } and potentially for parallelization.
     Type sections start with the amount of types followed by the type definitions.
     These definitions are about the types only and do not contain information about the fields of the types.
     In that section the type name, number of instances, restrictions, number of fields and super type are listed.
@@ -120,7 +121,7 @@ Then the results will be evaluated through functional and performance tests.
     This is possible as there is no overlapping write and read access on the instances memory as all instances are created before serialization starts.
     \autocite{skill-tr}
 
-    The reading and writing themselves are not too much different from the other implementations.
+    The reading and writing themselves are not too different from the other implementations.
     It will not be explained in detail.
     Reading of multi-block files is more sophisticated than this section may make them out to be, but it is not crucial for the rest of the thesis.
     The involved data structures and data flow however will be discussed as well as their consequences.
@@ -131,14 +132,14 @@ Then the results will be evaluated through functional and performance tests.
     Each generator has a \cods{Main} \cods{class} that has various \cods{trait}s mixed in.
     These traits are then responsible to create a certain set of files.
 
-    Generators work with an \gls{ir} that provides all types that the user defined as well as types for the build in types.
+    Generators work with an \gls{ir} that provides all types that have been defined by the user as well as types for the build-in types.
     These type representations are given to the generator in form of a type context which can be queried for different types, e.g.~user types or interfaces.
     Once the needed lists of type representations are obtained a generator can create the files with the translated type definitions.
-    One problem that the generators have to pay special attention to is the escaping of reserved keywords in their target language.
+    Generators have to pay special attention to the escaping of reserved keywords in their target language.
     For that a escaping function can be used that is applied to non literal strings.
 
 \section{Rust}\label{sec:rust}
-  The official Rust language website describes the language as;
+  The official Rust language website describes the language as:
   \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rust-org}
   It presents itself as a \emph{safe} language that should be considered as substitute for C, C++ and other systems programming languages.
   The project criticizes especially the following points in other languages and intends to solve them\autocite{rust-faq}:
@@ -189,7 +190,7 @@ Then the results will be evaluated through functional and performance tests.
 
     In \autoref{lst:lifetimeErr} a \struct \Foo is created that has an attribute.
     \codr{s} is of type \codr{&String}, or in words: \emph{\codr{s} is a reference to an immutable \String}.
-    For \codr{s} an explicit lifetime is needed because the compiler is not able to infer where the lifetime for will come from.
+    For \codr{s} an explicit lifetime is needed because the compiler is not able to infer where the lifetime will come from.
     In \autoref{lst:lifetimeFix} this error is fixed by explicitly giving the borrow a lifetime with \codr{'a}.
     The lifetime is given to the attribute through the type signature of \Foo.
     On construction of \Foo, line 7, the lifetime of \codr{s} is used as the lifetime for the reference.
@@ -207,7 +208,7 @@ Then the results will be evaluated through functional and performance tests.
 
     While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally exhibit.
     Inheritance is one of the features that differ.
-    While it is not possible to inherit from a \struct, \traits can inherit each other.
+    It is not possible to inherit from a \struct, \traits however can inherit each other.
     \traits can also be implemented for a set of types through type parameters.
     The set of types that a trait is generically implemented for can be restricted through a collection of required \traits and lifetimes.
     These requirements are also called \emph{bounds} and one can be seen in line 16 of \autoref{lst:genericsCall}.
@@ -229,7 +230,7 @@ Then the results will be evaluated through functional and performance tests.
     \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
     The functions \codr{who} take a parameter \codr{&self} which de-sugars to \codr{self: &Pinky} and \codr{self: &Becci}.
     In line 1 of \autoref{lst:genericsCall} the function \codr{fun_gen} uses a type parameter \T with a bound of \codr{Who}.
-    There too happens code duplication -- this time on invocation of the generic function\footnote{
+    There happens code duplication too -- this time on invocation of the generic function\footnote{
       No official documentation validates this, but the assembly code does. With optimisations both functions are in-lined.
     }.
     \T will be substituted by the \struct that implements the bound -- in this case \codr{Pinky} and \codr{Becci}.
@@ -239,7 +240,7 @@ Then the results will be evaluated through functional and performance tests.
     Trait objects can be compared to virtual abstract classes in C++.
     This means that method calls can be \emph{dynamic dispatched} -- in other words a virtual function call can be executed for \codr{obj.who()}.
     Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}\autocites[std::raw::TraitObject]{rust-doc}[Trait Objects]{rust-book1}.
-    This can introduce additional slowdown as more cache is need per object, access is non atomic\autocite[8.2.3.1 ff.]{intel64and} and moves are more expensive.
+    This can introduce additional slowdown as more cache is needed per object, access is non atomic\autocite[8.2.3.1 ff.]{intel64and} and moves are more expensive.
 
   \subsection{Errors, Null and Matching}\label{sec:rustErr}
     Rust provides two ways to express an error, both can be seen in \autoref{lst:errorFun}.
@@ -275,7 +276,7 @@ Then the results will be evaluated through functional and performance tests.
     The \codr{?} operator is a tool to direct the data flow of possible error results conveniently.
     What the \codr{?} operator does can be roughly seen in the \codr{nun()} function.
     In \codr{pun} the third way can be seen, where the \OptionT value is moved and if it is \Some it will be matched and accessible through \codr{didi}.
-    Matching can be found in many aspects of the language and is mostly a convenience feature as functions can be used too to unwrap the values.
+    Matching can be found in many aspects of the language and is mostly a convenience feature as functions can be used to unwrap the values as well.
     \autocite[Enums and Pattern Matching]{rust-doc}
 
   \subsection{Visibility and Grouping}
@@ -313,7 +314,7 @@ Then the results will be evaluated through functional and performance tests.
     A few strange things happen in \autoref{lst:rustfile}.
     The first thing is, that line 8 and 10 produce \emph{not} the same output.
     \codr{file} is immutable, so why and how can an iterator, created by \codr{bytes(self)}, change the position in the file?
-    The how can be explained with interior mutability which will be discussed later at a better example.
+    The how can be explained with interior mutability which was introduced in the previous section.
     The why however is left open.
 
     Further how can bytes be called by \codr{&file}?
@@ -329,7 +330,7 @@ Then the results will be evaluated through functional and performance tests.
 
   \subsection{Immutability Resolution}
     Rusts immutability is an on off switch, there is no mechanism to define an attribute as immutable.
-    So if an object is passed as immutable nothing can be changed, that is not wrapped by an \UnsafeCellT, more on that later.
+    So if an object is passed as immutable nothing can be changed, that is not wrapped by an \UnsafeCellT.
     But on the other hand everything can be changed if the object is mutable.
     Coming from a C++ background the lack of the \codc{const} feature reduces the expressiveness.
     And to a certain degree it also influences the safety of the program by providing another level of type safety\autocite[30ff.]{cpp101}.
@@ -345,9 +346,9 @@ Then the results will be evaluated through functional and performance tests.
     Valid calls for this approach can be seen in lines 31 to 33.
 
     The other option uses an extra \trait that is implemented for the trait that should have the static function available.
-    This \trait is here named \codr{IDs} and the expected call syntax works as seen in lines 35 to 37.
+    In this example the \trait is named \codr{IDs} and the expected call syntax works as seen in lines 35 to 37.
     An alternative for static functions of \traits are top-level functions that are grouped by name or module.
-    This however is just an option in context that doesn't work with type parameters that define the \trait.
+    This however is just an option in a context that doesn't use type parameters where the \trait should be used.
 
     \LstTikzBox{\staticOne}[.47\linewidth]{data/static.rs}[lastline=12]
     \LstTikzBox{\staticTwo}[.4\linewidth]{data/static.rs}[firstline=14,firstnumber=14,lastline=25]
@@ -377,7 +378,7 @@ Then the results will be evaluated through functional and performance tests.
     Lifetimes are needed for the Rust compiler to verify the compliance with the borrow rules, in particular for memory safety.
     The example from \autoref{lst:match} is about the lifetimes of borrows.
     The function \fun accepts a \Foo reference and if \codr{opt} has a value it should be printed and another function should be called.
-    That, however, this leads to a compile time error in the current version of Rust.
+    This leads to a compile time error in the current version of Rust.
     \autocite[2094-nll]{rust-rfc}
 
     \LstTikzFig{data/match.rs}{Self in Matches}{lst:match}

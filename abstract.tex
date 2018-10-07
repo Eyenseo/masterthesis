@@ -14,7 +14,7 @@ Additionally performance tests were executed to see how Rust bindings fare again
 \addchap*{Kurzfassung}
 Das Ziel dieser Arbeit war es einen Generator für \glsentrytext{skill} zu erstellen, welcher Rust Code erzeugt.
 Da Rust strenge Regeln anwendet, um Threadsicherheit garantieren zu können, muss der generierte Code diesen folgen, was Probleme bei der Darstellung von Graphen mit Zyklen bereitet.
-Viel Aufwand ist in die Findung von Alternativen und Implementationen für Vererbung zwischen \structs und deren fehlenden Konvertierungen gegangen.
+Viel Zeit ist für die Findung von Alternativen und Implementationen für Vererbung zwischen \structs und deren fehlenden Konvertierungen gegangen.
 Dazu passend musste auch eine Möglichkeit gefunden werden, die Rusts Regeln zur Laufzeit anwendet und die erweiterte Vererbungsfunktionalität unterstützt.
 Auffallend ist, dass die Implementierung die Threadsicherheitsgarantien von Rusts Regeln  nicht nutzen kann, weil die Einhaltung dieser, zur Laufzeit, die Parallelisierbarkeit einschränkten.
 Um zu validieren, dass die Implementation wie erwartet funktioniert, wurden bereits existierende funktionale Tests verwendet.
