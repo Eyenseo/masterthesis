@@ -145,8 +145,8 @@ The covered parts follow mostly the reference implementations.
     The reason for that is that the fields are not necessarily close in memory to the proxy objects, leading to cache misses.
     \autocite{skill-scala}
 
-    While an \gls{ecs} or the optimisation in \citetitle{skill-scala}\autocite{skill-scala} seems favorable to the previous solutions it was ruled out by Timm Felden.
-    The main argument is that an identifier like an index into a container is worse than a pointer.
+    While an \gls{ecs} or the optimisation in \citetitle{skill-scala}\autocite{skill-scala} seems favorable to the previous solutions it was ruled out by supervisor Timm Felden.
+    His main argument is that an identifier like an index into a container is worse than a pointer.
     If a container is resized, all indices have to be updated.
     That, however, is only possible if all identifiers, that are using the indices, are known and accessible by the system, which can not be guaranteed.
     In case that an proxy object would be used, as in \citetitle{skill-scala}\autocite{skill-scala}, it would prompt a similar problem to the one discussed in this section.
@@ -524,7 +524,7 @@ The covered parts follow mostly the reference implementations.
       The fields themself are represented through a Rust \enum which can be thought of as a tagged \codc{union}.
       The foreign field definitions are special in that they deserialise their data only if it has to be written.
       This is possible as the user has no way to interact with the foreign types or fields in the Rust implementation\footnote{%
-        In \citetitle{skill-tr13}\autocite{skill-tr13} the \gls{api} to access foreign types and fields was a feature, in \citetitle{skill-tr}\autocite{skill-tr} it was changed to be a core requirement. For this thesis Timm Felden said to treat it as feature.
+        In \citetitle{skill-tr13}\autocite{skill-tr13} the \gls{api} to access foreign types and fields was a feature, in \citetitle{skill-tr}\autocite{skill-tr} it was changed to be a core requirement. For this thesis supervisor Timm Felden said to treat it as feature.
       }.
 
       If a type has a known ancestor in a type hierarchy that type will be used instead to represent the foreign one.
