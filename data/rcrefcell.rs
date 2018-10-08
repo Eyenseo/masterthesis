@@ -10,5 +10,5 @@ fn main() {
   let y = Rc::new(RefCell::new(Node { s:"Steffi", next:Vec::default() }));
   y.borrow_mut().next.push(Rc::downgrade(&x));
   x.borrow_mut().next.push(Rc::downgrade(&y));
-  y.borrow_mut().s = "Benni";
+  y.borrow_mut().s = "Beni";
 }

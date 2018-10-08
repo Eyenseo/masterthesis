@@ -10,11 +10,11 @@ Rust was chosen as it aims to be a new, safer, systems programming language that
 These should allow for safe parallelism in the generated bindings.
 As reference implementation C++ was used, but C, Java and Scala were available too.
 This section will introduce \gls{skill} and Rust.
-Following that the design and implementation will be presented, as well as issues and solutions to them.
-Then the results will be evaluated through functional and performance tests.
+In the following section that the design and implementation will be presented, as well as issues and solutions to them.
+Finally the results will be evaluated through functional and performance tests.
 
 \section{SKilL}\label{sec:skill}
-  \gls{skill} encompasses a specification, binary format and tooling for them, that are used to generate code that enables users to serialise data of their software.
+  \gls{skill} encompasses a specification, binary format and tooling for them, that are used to generate code which enables users to serialise data of their software.
   For this thesis serialization is used for both reading data from files and writing data to files.
   The next sections will give a brief overview of features, tooling and intended use of \gls{skill}.
   For more in depth information and the reasoning for design decisions it is advised to refer to \citetitle{skill-tr}\autocite{skill-tr} and \citetitle{skill-dis}\autocite{skill-dis}.
@@ -24,7 +24,7 @@ Then the results will be evaluated through functional and performance tests.
     coding that is platform and language independent, upwards and downwards compatibility and lazy reading of unused data.
     The specification language was kept simple by providing fundamental types that are building blocks of most, commonly used languages as well as single inheritance.
     These properties allow users to describe the data structures for a software system in a natural way.
-    This specification is then used to generate a binding in a language chosen by users e.g.~C, C++, Java.
+    This specification is then used to generate a binding in a language chosen by the users e.g.~C, C++, Java.
     With the generated binding users are able to write their implementation in a language that they are most comfortable with, by using the offered \gls{api}.
     \autocite{skill-tr}
 
@@ -32,8 +32,8 @@ Then the results will be evaluated through functional and performance tests.
     \autoref{fig:archDesire} illustrates the fundamental architecture of a \gls{skill} binding.
     The \SkillFile is the \gls{api} root that the user accesses to crate and open \gls{skill} files.
     Through \SkillFile instances the user can access a management object, from here on called \StringPool, that is responsible to create and manage \Strings in such a way that they can be serialised.
-    Likewise are there management objects that are responsible for instances that are of a user defined type, from here on called \UserTypePools.
-    These management objects are necessary for the management of the objects, as the runtime system has to know which objects are to be serialized.
+    Likewise there are management objects that are responsible for instances of a user defined type, from here on called \UserTypePools.
+    These management objects are necessary as the runtime system has to know which objects are to be serialized.
     For this reason deletion of instances is also handled through these management objects.
     \autocite[107--112]{skill-dis}
 
@@ -46,14 +46,14 @@ Then the results will be evaluated through functional and performance tests.
     \UserTypePools contain \FieldDeclarations that describe fields of \UserTypes.
     They can't be encoded in the \UserTypePools at generation time, as there can be fields that have not been known at that time.
     Further have fields to be validated against the ones in the specification.
-    For sterilization \FieldDeclarations have to know the \UserTypePools as \UserType fields can have \UserTypes as fields.
+    For serialization \FieldDeclarations have to know the \UserTypePools as \UserType fields can have \UserTypes as fields.
     Similarly do they have to know the \StringPool in case that a field is of type \String.
     \autocite[144--148]{skill-dis}
 
     The \FileReader is responsible for the creation of the \StringPool, \UserTypePools and \FieldDeclarations.
-    While the creation of \UserType instances is handled by \UserTypePools, before the reading of field data, \FieldDeclarations are responsible for the reading of field data.
-    This split is done as only \FieldDeclarations know how to read the data and if the reading can be deferred until the first access or writing of the instance.
-    Additionally allows the two step process potentially for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
+    While the creation of \UserType instances is handled by \UserTypePools, before field data is read, \FieldDeclarations are responsible for the reading field data.
+    This split is done as only \FieldDeclarations can know how to read the data and if the reading can be deferred until the first access or writing of the instance.
+    Furthermore allows this two step process potentially for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
     \autocite[148f.]{skill-dis}
 
   \subsection{Serialization}\label{sec:rwSkill}
@@ -109,9 +109,9 @@ Then the results will be evaluated through functional and performance tests.
     These definitions are about the types only and do not contain information about the fields of the types.
     In that section the type name, number of instances, restrictions, number of fields and super type are listed.
     The next section contains the field definitions for the types.
-    Similar to inheritance in most other languages are super field definitions not redefined for the children types.
+    Similar to inheritance in most other languages, super field definitions are not redefined for the children types.
     The definition consists of the field name, type of the field, as well as the restrictions.
-    A field definition ends with a offset into the next section where the data of the fields resides.
+    A field definition ends with an offset into the next section where the data of the fields resides.
     \autocite{skill-tr}
 
     All data touched so far is small and fast to read as its size is not influenced by the amount of instances.
@@ -121,20 +121,20 @@ Then the results will be evaluated through functional and performance tests.
     This is possible as there is no overlapping write and read access on the instances memory as all instances are created before serialization starts.
     \autocite{skill-tr}
 
-    The reading and writing themselves are not too different from the other implementations.
+    The reading and writing  operations themselves are not too different from the other implementations.
     It will not be explained in detail.
     Reading of multi-block files is more sophisticated than this section may make them out to be, but it is not crucial for the rest of the thesis.
     The involved data structures and data flow however will be discussed as well as their consequences.
 
   \subsection{Generators}
     The generators are written in Scala and rely on mixins to be easily extensible, and string interpolation for readability.
-    Mixin classes are a kind of inheritance that allows linearisation of subclasses with different super types instead of an inheritance tree.\autocite[117f.]{oop-inter}
+    Mixin classes are a kind of inheritance that allows linearisation of subclasses with different super types instead of an inheritance tree\autocite[117f.]{oop-inter}.
     Each generator has a \cods{Main} \cods{class} that has various \cods{trait}s mixed in.
     These traits are then responsible to create a certain set of files.
 
     Generators work with an \gls{ir} that provides all types that have been defined by the user as well as types for the build-in types.
     These type representations are given to the generator in form of a type context which can be queried for different types, e.g.~user types or interfaces.
-    Once the needed lists of type representations are obtained a generator can create the files with the translated type definitions.
+    Once the needed lists of type representations is obtained a generator can create the files with the translated type definitions.
     Generators have to pay special attention to the escaping of reserved keywords in their target language.
     For that a escaping function can be used that is applied to non literal strings.
 
@@ -142,14 +142,14 @@ Then the results will be evaluated through functional and performance tests.
   The official Rust language website describes the language as:
   \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rust-org}
   It presents itself as a \emph{safe} language that should be considered as substitute for C, C++ and other systems programming languages.
-  The project criticizes especially the following points in other languages and intends to solve them\autocite{rust-faq}:
+  The project criticizes especially the following issues in other languages and intends to solve them\autocite{rust-faq}:
   \begin{enumerate}
     \item There is too little attention paid to safety.
     \item They have poor concurrency support.
     \item There is a lack of practical affordances.
     \item They offer limited control over resources.
   \end{enumerate}
-  But the project doesn't aim to create a complete safe language and intends to make compromises in favor of other goals.
+  But the project doesn't aim to create a completely safe language and instead intends to make compromises in favor of other goals.
   \autocite{rust-faq}
 
   The following sections will provide a short introduction to the Rust programming language.
@@ -206,7 +206,7 @@ Then the results will be evaluated through functional and performance tests.
     They define a set of functions that have to be implemented by a type that provides a certain \trait.
     Besides \traits, \codr{impl} blocks can be used to add methods to \structs.
 
-    While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally exhibit.
+    While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally offer.
     Inheritance is one of the features that differ.
     It is not possible to inherit from a \struct, \traits however can inherit each other.
     \traits can also be implemented for a set of types through type parameters.
@@ -304,7 +304,7 @@ Then the results will be evaluated through functional and performance tests.
     The provided interface of \CellT is safe to use and doesn't need \unsafe like \UnsafeCellT does because there is not way for the user to borrow the contained value.
     In line 7 it is possible to modify the value of \x.
     The value of \y in line 8 however raises the compiler an error.
-    The mutability of \x would lead to data races and because of that are \CellT and \RefCellT not marked as thread safe\autocites[std::cell]{rust-doc}[Send and Sync]{rust-nom}.
+    The mutability of \x would lead to data races and because of that \CellT and \RefCellT are not marked as thread safe\autocites[std::cell]{rust-doc}[Send and Sync]{rust-nom}.
 
 \section{Rust Oddities}
   This section will focus on oddities and questionable design choices that have been encountered while working with Rust.
@@ -322,7 +322,7 @@ Then the results will be evaluated through functional and performance tests.
     The thing that is deceptive is that \trait \Read is not implemented for \File but for \codr{&'a File}.
     Which means that \self is not an object but a reference to one.
 
-    But the real question is the following; How can it be that line 12 fails?
+    But the real question is the following: How can it be that line 12 fails?
     With the results, that prompt the first question, this should be allowed.
     In this case there is really no modification going on too.
 
@@ -333,11 +333,11 @@ Then the results will be evaluated through functional and performance tests.
     So if an object is passed as immutable nothing can be changed, that is not wrapped by an \UnsafeCellT.
     But on the other hand everything can be changed if the object is mutable.
     Coming from a C++ background the lack of the \codc{const} feature reduces the expressiveness.
-    And to a certain degree it also influences the safety of the program by providing another level of type safety\autocite[30ff.]{cpp101}.
+    To a certain degree it also influences the safety of the program by providing another level of type safety\autocite[30ff.]{cpp101}.
     A workaround is an extra type that wraps the value and only provides immutable accessors.
 
   \subsection{Static Functions for Traits}
-    To implement a static function for a \trait should not be difficult, but it is.
+    Implementing a static function for a \trait should not be difficult, but it is.
     In \autoref{lst:static} two options are shown how-to do it.
 
     The first option involves functions that are implemented for \Foo as well as the two \traits without a \self parameter.
@@ -363,7 +363,7 @@ Then the results will be evaluated through functional and performance tests.
     \end{figure}
 
   \subsection{Coercion of \texttt{trait}s}
-    Rust uses \emph{coercion} as name for implicit casts.
+    Rust uses \emph{coercion} as the name for implicit casts.
     \autoref{lst:coercionTwo} shows strange mechanic that is related to coercion.
     Here, \A is inherited by \B and \B and \A are implemented for \Foo.
     Then \codr{x} is borrowed as \codr{&B} and through \codr{rb} the function \fun of \A is called successfully.\footnote{

@@ -4,7 +4,7 @@
 \chapter{Design and Implementation}
 In \autoref{sec:intro} the basics of \gls{skill} and Rust were explained.
 This section will feature the design and implementation of the common and generated rust code.
-The first sections will present problems that stem from Rusts type system.
+The first sections will present problems that arise from Rusts type system.
 Afterwards the solution for them will be presented.
 These sections are the most elaborate ones as the decisions have far reaching consequences and differ the most from the other implementations.
 Lastly the generated code and the resulting architecture will be covered.
@@ -39,14 +39,14 @@ The covered parts follow mostly the reference implementations.
     It is further possible to assign the root object \codr{x} to the child object \codr{y}.
     But from that point on problems appear.
     First of all does \codr{y} not live long enough -- this is the direct result of the lifetime specifier.
-    Secondly has \codr{y} to be assigned to \codr{x.next} and with that needs \codr{x} to be mutable.
+    Secondly has \codr{y} to be assigned to \codr{x.next} and with that \codr{x} needs to be mutable.
     This should sound familiar to the problems shown in \autoref{sec:rustBorr}.
     Since \codr{x} is already borrowed by \codr{y.next}, \codr{x} can't be borrowed again mutable to assign \codr{y} to it.
 
   \subsection{Pointers in Rust}
     Coming from a C++ background the next thing that comes to mind would be (raw) pointers.
     Pointers were not introduced in \autoref{sec:rust} and the reason for that is, that they are not a type commonly used in Rust\autocite[Raw Pointers]{rust-book1}.
-    Why this is the case can be seen in \autoref{lst:pointers}.
+    In \autoref{lst:pointers} it can be seen why this is the case.
 
     \autoref{lst:pointersOne} shows the basic usage of pointers, also named `raw pointers'.
     Raw pointers differ from references and smart pointers in the following points\autocite[Unsafe Rust]{rust-book}: Pointers~\ldots
@@ -101,10 +101,10 @@ The covered parts follow mostly the reference implementations.
   \subsection{Smart Pointer}
     The term smart pointer might be familiar from C++.
     In Rust there is \RcT which is a reference counting wrapper that acts as pointer and it is comparable to \codr{std::shared_ptr<T>} from C++.
-    This smart pointer uses two integer to count how many \emph{weak} and \emph{strong} references there are to the owned data.
+    This smart pointer uses two integers to count how many \emph{weak} and \emph{strong} references there are to the owned data.
     If the strong counter reaches zero the destructor of the contained value is called by \RcTs destructor.
     The memory is released once the weak counter reaches zero too.
-    This means there is only one memory allocation which leads to better cache locality and with that improved speed.
+    This means there is only one memory allocation which leads to better cache locality and this increases speed.
     But it also means that the memory can only be freed once the last weak pointer is destructed, which might be unwanted.
     \autocite[std::rc::Rc]{rust-doc}
 
@@ -140,7 +140,7 @@ The covered parts follow mostly the reference implementations.
     An prominent example for an implementation of an \gls{ecs} is the \emph{specs}\autocite{rust-specs} library that is used for a \gls{gui}\autocite{rust-xi} and small engines\autocites{rust-amethyst}{rust-rhusics}.
 
     In \citetitle{skill-scala}\autocite{skill-scala} a similar approach to the components of an \gls{ecs} is explored.
-    Here each field is stored in continuous container, one container per field for read objects and one for new ones.
+    Here each field is stored in a continuous container, one container per field for read objects and one for new ones.
     Through testing of the changed architecture it was found that reading and writing was fast but the access of fields in objects were slower.
     The reason for that is that the fields are not necessarily close in memory to the proxy objects, leading to cache misses.
     \autocite{skill-scala}
@@ -202,14 +202,13 @@ The covered parts follow mostly the reference implementations.
     From that perspective the code from \autoref{lst:inheritanceComposition} would represent the type hierarchy present in \autoref{lst:inheritanceJava}.
     This has a few nice properties.
     The user would be working with types and not trait objects and thus the code would not use virtual functions.
-    Further can up casts be performed by returning a borrow to the contained super type.
-    But on the other hand, down casting becomes impossible as the super component has no knowledge about the child component.
+    Further can up casts be performed by returning a borrow to the contained super type, but on the other hand, down casting becomes impossible as the super component has no knowledge about the child component.
     Since the memory layout of \structs is undefined\autocite[0079-undefined-struct-layout]{rust-rfc} no assumption about a pointer offset can be made.
     As alternative an option from \autoref{sec:graph} could be used e.g. \codr{Option<Rc<RefCell<T>>>} to create inheritance cycles.
-    However, that would degrade the usability and require linear time or memory to perform the casts.
+    That would however degrade the usability and require linear time or memory to perform the casts.
 
   \subsection{Inheritance through Traits}\label{sec:magic}
-    If a type hierarchy like \autoref{lst:inheritanceJava} has to be realized in Rust another option is to use \traits and would result in something akin to \autoref{lst:inheritanceTrait}.
+    If a type hierarchy like \autoref{lst:inheritanceJava} has to be realized in Rust another option is to use \traits, which would result in something akin to \autoref{lst:inheritanceTrait}.
     The `real' types have the suffix \codr{Proper} and the access interfaces have the original type name.
     This naming scheme improves the usability for the user of the code as the user will most of the time have to use the trait objects.
     While inheritance can be expressed this way it has a few quirks that have to be improved upon.
@@ -261,7 +260,7 @@ The covered parts follow mostly the reference implementations.
     Similarly to the previous section is the C-memory layout used to allow for casts not otherwise possible, like it is shown in \autoref{lst:inheritanceStruct}.
     The field definitions have to appear in the same order, to create the same memory layout, for all types in a type hierarchy\autocite[repr(C)]{rust-nom}.
     This approach has the issue that functions still wouldn't be inherited and would have to be implemented by the user, repeatedly, for all valid \structs.
-    Similarly to the \traits there is an issue with the casting if the memory of the \struct is managed by a wrapper type.
+    Similarly to the \traits there is an issue with casting if the memory of the \struct is managed by a wrapper type.
     A nice property about this approach is that it fits better in normal Rust code and implicit casts to \codr{traits} can still happen as the proper type is used.
 
     \LstTikzFig{data/inheritanceStruct.rs}{Inheritance with C-Memory layout and Structs}{lst:inheritanceStruct}
@@ -283,14 +282,13 @@ The covered parts follow mostly the reference implementations.
 
     The majority of the \PtrT type consists of \RcT and \RefCellT, combined into one cohesive wrapper.
     That means the original source code was copied and combined.
-    This was needed as this type is supposed to be able to be castable.
-    Meaning that the contained value should be able to represent a \struct or trait object.
+    This was needed as this type is supposed to be able to be castable, meaning that the contained value should be able to represent a \struct or trait object.
     Without this manual combination the reference counting and mutability state monitoring would inhibit proper casting.
 
     Merging of the to types results in the memory layout seen in \autoref{lst:ptrStruct}.
     Compared to \autoref{lst:rcRefCellStruct} this uses one additional pointer.
     \RcT only needs one pointer for the \codr{RcBox<T>} that contains the meta data as well as the value.
-    The \codr{PhantomData<T>} provides the compiler with information which \enquote{is used when computing certain safety properties.}\autocite[std::marker::PhantomData]{rust-doc}.
+    The \codr{PhantomData<T>} is there to provide the compiler with information which \enquote{is used when computing certain safety properties.}\autocite[std::marker::PhantomData]{rust-doc}.
     \RefCellT doesn't need any pointers whatsoever.
     Since there can be many \PtrTs that point to the same data but have a different views\footnote{
       The data pointer is not so much the problem, but the vtable pointer from trait objects are.
@@ -311,7 +309,7 @@ The covered parts follow mostly the reference implementations.
     The \CastAble trait bound is needed to call \codr{cast_id()} on \U.
     With both \ids the lookup table can be accessed and depending on the value of \OptionT (\SomeT or \None) the cast will be performed or not.
     The lookup table is implemented as a $N \times M$ matrix, where the elements are an \codr{Option<VTable>}, which means that the \struct and accessor \trait are handled equally.
-    The curious thing about this function and Rusts generics is, that the code does the same thing for every \T and every \U.
+    What is interesting about this function and Rusts generics is, that the code does the same thing for every \T and every \U.
     That means that even if a \struct is cast to another \struct a trait object is created and the vtable will be inserted into it as if \U was the accessor trait.
     Fortunately the vtable is at index 1 and data at index 0 because \codr{transmute} will cut the additional pointer off in case \U is a \struct type.
 
@@ -323,8 +321,9 @@ The covered parts follow mostly the reference implementations.
     The issue is that \PtrT is reference counting to enforce borrow rules as well as the lifetime of the managed memory.
     That means that both, borrowing and cloning has to happen in a synchronized way to achieve object parallelism.
     But, the parallelism benefits can only be gained if the fields of the objects can be serialized in parallel.
-    The binary format is designed in such a way that the field data can be read in parallel, with a little extra work parallel writing is also possible.
-    To also support that kind of parallelism, at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
+    The binary format is designed in such a way that the field data can be read in parallel.
+    With a little extra work parallel writing is also possible.
+    To support that kind of parallelism also at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
 
     \PtrT would have to be made from a \ArcT and \RwLockT, instead of \RcT and \RefCellT, to allow for object parallelism.
     Which means that every object access would be behind a mutex and multiple atomic operations\autocite[std::sync::Arc, std::sync::RwLock]{rust-doc}.
@@ -459,9 +458,9 @@ The covered parts follow mostly the reference implementations.
       Finally is \age the field that the user specified in the specification.
 
       \age needs accessors to be accessible outside of this module which are declared in the \AgeObject \trait.
-      \AgeObject also inherits \SkillObject and with that has to implement it and also the \Deleteable \trait.
+      \AgeObject also inherits \SkillObject and therefore has to implement it and also the \Deleteable \trait.
       The \Deleteable trait provides an interface that allows the objects to be marked for deletion.
-      This interface should not be visible for the user but there is no way to do that in Rust.
+      This interface should not be visible to the user but there is no way to do that in Rust.
 
       Additionally to the types present in the users specification \Age also implements \ForeignObject that belongs to the \Foreign \struct.
       The \Foreign type is exclusively used to create an interface that allows the serialization of types and fields that were not known at generation time.
@@ -475,7 +474,7 @@ The covered parts follow mostly the reference implementations.
       Most of the code that is needed for \UserTypePools is specification independent and can be reused without issue.
       The problem with code reuse through composition is that it is difficult to provide the general, contained type with the containing \struct's data or special functions.
       In case that the containing \struct calls the functions of \Pool data and special functions can be made available.
-      But if the contained \struct is called by something else a dependency cycle occurs that has to be broken with options form \autoref{sec:graph}, which can lead to violations of borrow rules.
+      But if the contained \struct is called by something else a dependency cycle occurs that has to be broken with options from \autoref{sec:graph}, which can lead to violations of borrow rules.
       The \Pool is used by other objects than the \UserTypePools that do not know of the \UserTypePools.
       Because of that \UserPartsMaker exists which externalizes the special functions of \UserTypePool so that they are callable by \Pool.
       Since \UserTypePools are not a \Pool and because they have to be able to be stored in a container the \PoolProxy \trait was created.
@@ -486,7 +485,7 @@ The covered parts follow mostly the reference implementations.
       \PoolProxy on the other hand is needed to create \UserFieldDeclaration instances that are missing from the serialized data but were present in the specification.
 
     \subsubsection{Field Declarations}
-      Lastly are there \FieldDeclarations, these types are responsible for the serialisation of fields from \UserTypes.
+      Lastly there are \FieldDeclarations, which are responsible for the serialisation of fields from \UserTypes.
       For each field a \FieldDeclaration is generated that implements how the field data is read and written.
       They also handle the setup of the different chunks that are involved if the file that is read has multiple blocks.
 
@@ -494,7 +493,7 @@ The covered parts follow mostly the reference implementations.
     As the section name hints the casting for trait objects is implemented through a lookup table that contains the appropriate vtable pointers.
     The lookup table is implemented as a $N \times M$ matrix, where $M$ is the amount of types $+1$ to accommodate the foreign type.
     $N=M+1$ to additionally accommodate the shared \trait \SkillObject.
-    The memory footprint could be reduced by using a spare array at the trade-off for lookup speed.
+    The memory footprint could be reduced by using a sparse array at the trade-off for lookup speed.
     % TODO mention evaluation or implementation for hashmap comparison
     The matrix uses \codr{Option<VTable>} instances as elements -- if the value is \codr{None} the cast is invalid, otherwise the correct vtable is obtained.
     The generator produces the correct vtables with the technique introduced in \autoref{sec:magic}.
@@ -510,11 +509,11 @@ The covered parts follow mostly the reference implementations.
     \subsubsection{Strings and their Pool}
       Strings have to be managed and known by the \StringPool.
       That means that a \String may not be modified by the user directly.
-      The reason for that is that type and field names are managed strings too.
+      The reason for that is, that type and field names are managed strings too.
       A direct modification from the user might inadvertently change the representation of the type system.
 
       To conform to these requirements and the need for an id for each string -- that is obtainable through the string -- a wrapper is needed for \String.
-      Since inheritance is not an option \String was made into a component of \SkillString.
+      Since inheritance is not an option \String was made a component of \SkillString.
       \SkillString has to provide a method to obtain an immutable reference to the contained \String to be somewhat compatible with other libraries.
       Since the removal of a \SkillString that represents a literal used by a type would lead to problems there is no way for the user to delete a \SkillString explicitly.
       The explicit deletion is replaced with automatic pruning on writing.
