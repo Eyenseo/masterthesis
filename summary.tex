@@ -19,15 +19,15 @@ The central issue was that \gls{skill} allows for graph like structures which co
 These rules are essential for thread safety as they act like a reader-writer lock on references that exists as long as the reference.
 To create cycles wrappers are used that enforce the borrow rules at runtime.
 Since these wrappers have a state the state has to be accessed in a synchronized fashion if these wrappers are shared across threads.
-Further is object parallelism not enough, field parallelism is required to benefit form parallelism.
+Further is object parallelism not enough, field parallelism is required to benefit from parallelism.
 This means that fields of the objects have to be wrapped by a synchronizing wrapper too.
 The resulting architecture was deemed too inefficient in comparison to a sequential solution.
 
-Apart from the issue with the parallelism was inheritance and casting an interesting subject.
+Apart from the issue with parallelism, was inheritance and casting an interesting subject.
 Rust features inheritance for \traits which are comparable to Javas \codj{interface}s but not for \structs which can be compared to Cs \structs.
 Further are only casts from a \struct to a \trait possible but not from a \trait to a \struct or from a \trait to a \trait.
 To allow all casts a method was created that requires the \structs to have a C memory layout.
-The method used then a lookup table to check if a cast is valid or not.
+The method used a lookup table to check if a cast is valid or not.
 To execute casts to a trait a vtable pointer is necessary, which is also contained in the lookup table.
 
 The performance of Rust bindings is $\times 4.6$ slower than the parallelized C++ version.

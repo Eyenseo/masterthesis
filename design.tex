@@ -76,7 +76,7 @@ The covered parts follow mostly the reference implementations.
       \caption{Rust Pointers and Unsafe Code}\label{lst:pointers}
     \end{figure}
 
-    The issue, to why pointers are not the solution for our graph problem and why they are uncommon in Rust code comes apparent in \autoref{lst:pointersTwo}.
+    The issue, why pointers are not the solution for our graph problem and why they are uncommon in Rust code, comes apparent in \autoref{lst:pointersTwo}.
     There a pointer \codr{ps} is created that points to the mutable \String \codr{s}.
     Line 4 and 5 indicate that there might be an issue -- it is possible to create two \emph{mutable} references to the same value.
     Line 6 and 7 prove that the safety rules of Rust have been broken, as it is possible to use both \codr{rsm1} and \codr{rsm2} in methods that mutate \codr{s}.
@@ -104,7 +104,7 @@ The covered parts follow mostly the reference implementations.
     This smart pointer uses two integer to count how many \emph{weak} and \emph{strong} references there are to the owned data.
     If the strong counter reaches zero the destructor of the contained value is called by \RcTs destructor.
     The memory is released once the weak counter reaches zero too.
-    This means there is only one memory allocation which leads to better cache locality and with that speed.
+    This means there is only one memory allocation which leads to better cache locality and with that improved speed.
     But it also means that the memory can only be freed once the last weak pointer is destructed, which might be unwanted.
     \autocite[std::rc::Rc]{rust-doc}
 
@@ -131,8 +131,8 @@ The covered parts follow mostly the reference implementations.
   \subsection{Indices as Pointers Replacement}
     Another solution for graphs is something that is similar to \glspl{ecs}.
     In an \gls{ecs} an `object' is represented through an entity that is an identifier, e.g.~an integer.
-    Components are data of entities and are stored usually in an indexable, continuous structure.
-    Systems are responsible to use and modify components based on logic that works uses other components and entities.\autocite[209]{sfml}
+    Components contain the data of entities and are stored usually in an indexable, continuous structure.
+    Systems are responsible to use and modify components, based on logic that uses other components and entities.\autocite[209]{sfml}
     The \gls{ecs} pattern provides composition over inheritance as the entity has no information about systems using it and the assigned components.
     \glspl{ecs} are most commonly used by game engines as it results in fast code and is easier to write reusable code\autocites[209]{sfml}{ecs-acc-game}{ecs-hash}.
 
@@ -146,12 +146,12 @@ The covered parts follow mostly the reference implementations.
     \autocite{skill-scala}
 
     While an \gls{ecs} or the optimisation in \citetitle{skill-scala}\autocite{skill-scala} seems favorable to the previous solutions it was ruled out by Timm Felden.
-    The main argument being that an identifier like an index into a container is worse than a pointer.
+    The main argument is that an identifier like an index into a container is worse than a pointer.
     If a container is resized, all indices have to be updated.
     That, however, is only possible if all identifiers using the indices are known and accessible by the system, which can not be guaranteed.
     In case that an proxy object would be used, as in \citetitle{skill-scala}\autocite{skill-scala}, it would prompt a similar problem to the one discussed in this section.
     All proxy objects would need to be able to access the container that store their field data.
-    These container would have to be modified in case that an object is added and the data in the containers would also have to be modified through the proxy objects.
+    These containers would have to be modified in case that an object is added and the data in the containers would also have to be modified through the proxy objects.
     That results in a conflict with Rusts borrow rules.
 
 \section{Inheritance in Rust}\label{sec:inheritance}
@@ -205,8 +205,8 @@ The covered parts follow mostly the reference implementations.
     Further can up casts be performed by returning a borrow to the contained super type.
     But on the other hand, down casting becomes impossible as the super component has no knowledge about the child component.
     Since the memory layout of \structs is undefined\autocite[0079-undefined-struct-layout]{rust-rfc} no assumption about a pointer offset can be made.
-    As alternative an option form \autoref{sec:graph} could be used e.g. \codr{Option<Rc<RefCell<T>>>} to create inheritance cycles.
-    However would that degrade the usability and require linear time or memory to perform the casts.
+    As alternative an option from \autoref{sec:graph} could be used e.g. \codr{Option<Rc<RefCell<T>>>} to create inheritance cycles.
+    However that would degrade the usability and require linear time or memory to perform the casts.
 
   \subsection{Inheritance through Traits}\label{sec:magic}
     If a type hierarchy like \autoref{lst:inheritanceJava} has to be realized in Rust another option is to use \traits and would result in something akin to \autoref{lst:inheritanceTrait}.
@@ -511,11 +511,11 @@ The covered parts follow mostly the reference implementations.
     \subsubsection{Strings and their Pool}
       Strings have to be managed and known by the \StringPool.
       That means that a \String may not be modified by the user directly.
-      The reason for that type and field names are managed string too.
+      The reason for that is that type and field names are managed strings too.
       A direct modification from the user might inadvertently change the representation of the type system.
 
       To conform to these requirements and the need for an id for each string -- that is obtainable through the string -- a wrapper is needed for \String.
-      Since inheritance is not an option was \String made into a component of \SkillString.
+      Since inheritance is not an option \String was made into a component of \SkillString.
       \SkillString has to provide a method to obtain an immutable reference to the contained \String to be somewhat compatible with other libraries.
       Since the removal of a \SkillString that represents a literal used by a type would lead to problems there is no way for the user to delete a \SkillString explicitly.
       The explicit deletion is replaced with automatic pruning on writing.

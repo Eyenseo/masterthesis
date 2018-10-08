@@ -14,7 +14,7 @@ Following that the design and implementation will be presented, as well as issue
 Then the results will be evaluated through functional and performance tests.
 
 \section{SKilL}\label{sec:skill}
-  \gls{skill} encompasses a specification and binary format and tooling for them, that are used to generate code that enables users to serialise data of their software.
+  \gls{skill} encompasses a specification, binary format and tooling for them, that are used to generate code that enables users to serialise data of their software.
   For this thesis serialization is used for both reading data from files and writing data to files.
   The next sections will give a brief overview of features, tooling and intended use of \gls{skill}.
   For more in depth information and the reasoning for design decisions it is advised to refer to \citetitle{skill-tr}\autocite{skill-tr} and \citetitle{skill-dis}\autocite{skill-dis}.
@@ -53,7 +53,7 @@ Then the results will be evaluated through functional and performance tests.
     The \FileReader is responsible for the creation of the \StringPool, \UserTypePools and \FieldDeclarations.
     While the creation of \UserType instances is handled by \UserTypePools, before the reading of field data, \FieldDeclarations are responsible for the reading of field data.
     This split is done as only \FieldDeclarations know how to read the data and if the reading can be deferred until the first access or writing of the instance.
-    Additionally allows this two step process potentially for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
+    Additionally allows the two step process potentially for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
     \autocite[148f.]{skill-dis}
 
   \subsection{Serialization}\label{sec:rwSkill}
@@ -99,7 +99,7 @@ Then the results will be evaluated through functional and performance tests.
       \label{img:skilllayout}
       \vspace*{-\baselineskip}
     \end{wrapfigure}
-    As seen in \autoref{img:skilllayout} can a \gls{skill} file consist of multiple blocks.
+    As seen in \autoref{img:skilllayout} a \gls{skill} file can consist of multiple blocks.
     Each of these blocks consists of a string section and a type section.
     String sections first list the amount of strings, followed by the lengths of the strings, followed by the strings themself.
     This layout allows for easy reading and writing of the strings with \cod{mmap}\footnote{
@@ -154,7 +154,7 @@ Then the results will be evaluated through functional and performance tests.
 
   The following sections will provide a short introduction to the Rust programming language.
   The focus is on the elements and features that are important to this thesis.
-  For a more in-depth and up to data introduction it is strongly advised to refer to the official documentation\autocites{rust-org}{rust-doc}{rust-nom}{rust-book}.
+  For a more in-depth and up to date introduction it is strongly advised to refer to the official documentation\autocites{rust-org}{rust-doc}{rust-nom}{rust-book}.
 
   \subsection{Borrows and Lifetimes}\label{sec:rustBorr}
     At the core of the memory and concurrency goal stands the \emph{borrowing} mechanic.
@@ -204,14 +204,14 @@ Then the results will be evaluated through functional and performance tests.
     \structs are equivalent to C \structs as they are a collection of fields.
     \traits can be thought of as Javas \codj{interface}s.
     They define a set of functions that have to be implemented by a type that provides a certain \trait.
-    Additionally to \traits can \codr{impl} blocks be used to add methods to \structs.
+    Besides \traits, \codr{impl} blocks can be used to add methods to \structs.
 
     While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally exhibit.
     Inheritance is one of the features that differ.
     It is not possible to inherit from a \struct, \traits however can inherit each other.
     \traits can also be implemented for a set of types through type parameters.
     The set of types that a trait is generically implemented for can be restricted through a collection of required \traits and lifetimes.
-    These requirements are also called \emph{bounds} and one can be seen in line 16 of \autoref{lst:genericsCall}.
+    These requirements are also called \emph{bounds} and can be seen in line 16 of \autoref{lst:genericsCall}.
     As result of the missing inheritance code reuse can be more difficult if a bound can't be expressed.
     Such a situation can appear as a bound has to hold for all types, whether all types actually invoke the function doesn't matter.
     This is in contrast to C++ where only the function invocation triggers the instantiation for it\autocite[§17.8.1 10]{cpp-iso} which allows more code to be valid.
@@ -228,7 +228,7 @@ Then the results will be evaluated through functional and performance tests.
     \end{figure}
 
     \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
-    The functions \codr{who} take a parameter \codr{&self} which de-sugars to \codr{self: &Pinky} and \codr{self: &Becci}.
+    The functions \codr{who} takes a parameter \codr{&self} which de-sugars to \codr{self: &Pinky} and \codr{self: &Becci}.
     In line 1 of \autoref{lst:genericsCall} the function \codr{fun_gen} uses a type parameter \T with a bound of \codr{Who}.
     There happens code duplication too -- this time on invocation of the generic function\footnote{
       No official documentation validates this, but the assembly code does. With optimisations both functions are in-lined.
@@ -254,7 +254,7 @@ Then the results will be evaluated through functional and performance tests.
     } which will terminate the program.
     A panic in Rust can be compared to an exception, as a panic can be caught\autocite[std::panic::catch\_unwind]{rust-doc}.
     This macro is used throughout the standard library e.g.~for an access over the limits of an array.
-    But panics are mostly used for `unrecoverable' or unexpected problems, whereas \codr{Result} is used in case an error can be expected, e.g.~\codr{File::open()} returns \codr{Result<File, Error}.
+    But panics are mostly used for `unrecoverable' or unexpected problems, whereas \codr{Result} is used in case an error can be expected, e.g.~\codr{File::open()} returns \codr{Result<File, Error>}.
     Another wrapper type that is used throughout the standard library is \OptionT, seen in the \codr{gun} function.
     The main difference to \codr{Result} is, that \codr{Option} can only hold a valid value or non at all.
     Because of that it is also used as replacement for \codc{NULL}.
