@@ -2,7 +2,7 @@ fn cast<U>(&self) -> Option<Ptr<U>>
 where
   // Bound of U;
   //   U can be Sized, or Unsized
-  //   U may only have references that life as long as the whole program
+  //   U may only have references that live as long as the whole program
   //   U has to implement CastAble which is needed to call cast_id()
   U: ?Sized + 'static + CastAble,
 {

@@ -133,22 +133,22 @@ The covered parts follow mostly the reference implementations.
     In an \gls{ecs} an `object' is represented through an entity that is an identifier, e.g.~an integer.
     Components contain the data of entities and are stored usually in an indexable, continuous structure.
     Systems are responsible to use and modify components, based on logic that uses other components and entities.\autocite[209]{sfml}
-    The \gls{ecs} pattern provides composition over inheritance as the entity has no information about systems using it and the assigned components.
-    \glspl{ecs} are most commonly used by game engines as it results in fast code and is easier to write reusable code\autocites[209]{sfml}{ecs-acc-game}{ecs-hash}.
+    The \gls{ecs} pattern provides composition over inheritance as the entity has no information about the systems using it and the assigned components.
+    \glspl{ecs} are most commonly used by game engines as they result in fast code and it is easier to write reusable code with them\autocites[209]{sfml}{ecs-acc-game}{ecs-hash}.
 
-    In the rust community \gls{ecs} like structures are in discussion as solution to cycles and graphs\autocites{rust-graph-r4cpp}{rust-graph-leipzig}{rust-graph-niko}{rust-graph-exyr}.
+    In the rust community \gls{ecs} like structures are in discussion as possible solutions to cycles and graphs\autocites{rust-graph-r4cpp}{rust-graph-leipzig}{rust-graph-niko}{rust-graph-exyr}.
     An prominent example for an implementation of an \gls{ecs} is the \emph{specs}\autocite{rust-specs} library that is used for a \gls{gui}\autocite{rust-xi} and small engines\autocites{rust-amethyst}{rust-rhusics}.
 
     In \citetitle{skill-scala}\autocite{skill-scala} a similar approach to the components of an \gls{ecs} is explored.
     Here each field is stored in continuous container, one container per field for read objects and one for new ones.
-    Through testing of the changed architecture it was found that reading and writing was fast but the access of fields in objects was slower.
+    Through testing of the changed architecture it was found that reading and writing was fast but the access of fields in objects were slower.
     The reason for that is that the fields are not necessarily close in memory to the proxy objects, leading to cache misses.
     \autocite{skill-scala}
 
     While an \gls{ecs} or the optimisation in \citetitle{skill-scala}\autocite{skill-scala} seems favorable to the previous solutions it was ruled out by Timm Felden.
     The main argument is that an identifier like an index into a container is worse than a pointer.
     If a container is resized, all indices have to be updated.
-    That, however, is only possible if all identifiers using the indices are known and accessible by the system, which can not be guaranteed.
+    That, however, is only possible if all identifiers, that are using the indices, are known and accessible by the system, which can not be guaranteed.
     In case that an proxy object would be used, as in \citetitle{skill-scala}\autocite{skill-scala}, it would prompt a similar problem to the one discussed in this section.
     All proxy objects would need to be able to access the container that store their field data.
     These containers would have to be modified in case that an object is added and the data in the containers would also have to be modified through the proxy objects.
@@ -206,7 +206,7 @@ The covered parts follow mostly the reference implementations.
     But on the other hand, down casting becomes impossible as the super component has no knowledge about the child component.
     Since the memory layout of \structs is undefined\autocite[0079-undefined-struct-layout]{rust-rfc} no assumption about a pointer offset can be made.
     As alternative an option from \autoref{sec:graph} could be used e.g. \codr{Option<Rc<RefCell<T>>>} to create inheritance cycles.
-    However that would degrade the usability and require linear time or memory to perform the casts.
+    However, that would degrade the usability and require linear time or memory to perform the casts.
 
   \subsection{Inheritance through Traits}\label{sec:magic}
     If a type hierarchy like \autoref{lst:inheritanceJava} has to be realized in Rust another option is to use \traits and would result in something akin to \autoref{lst:inheritanceTrait}.
@@ -227,7 +227,7 @@ The covered parts follow mostly the reference implementations.
       \caption{Emulated Inheritance with Traits}\label{lst:inheritanceTrait}
     \end{figure}
 
-    To solve these two issues a \cast function will have to be created that is able to create a trait object from another.
+    To solve these two issues a \cast function has to be created that is able to create a trait object from another.
     In \autoref{sec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \cast function.
     The first field of a trait object is the data pointer to the \struct and copying the pointer is no issue.
     However the second field is more difficult to fill as the correct vtable pointer has to be created.
@@ -236,12 +236,12 @@ The covered parts follow mostly the reference implementations.
     } which can be seen in \autoref{lst:nullTraitObject}.
     \autocite{rust-digg}
 
-    \LstTikzFig{data/nullTraitObject.rs}{Obtaining a VTable from \codr{NULL}}{lst:nullTraitObject}
+    \LstTikzFig{data/nullTraitObject.rs}{Obtaining a VTable from \codr{null}}{lst:nullTraitObject}
 
     \autoref{lst:nullTraitObject} shows how to obtain the vtable pointer.
     There is a \codr{Proper struct} and a \codr{trait Object} that is implemented for \codr{Proper}.
     Apart from Rust memory layout, where the compiler may reorder and add padding to fields, Rust also supports C-style memory layout with the \codr{#[repr(C)]} annotation.
-    This is needed for the \TraitObject \struct which allows casting trait objects to it and with that accessing the two pointers.
+    This is needed for the \TraitObject \struct which allows casting trait objects to it and thereby accessing the two pointers.
     \codr{()} is the \emph{unit type} comparable to \codc{void}\autocites[repr(C)]{rust-nom}[Defining and Instantiating Structs]{rust-book}.
     In line 14 a \codr{null} pointer is created with the type of \codr{Proper} and then casted to a trait object of type \codr{Object}.
     This trait object is then \codr{transmuted} to a \TraitObject instance.
@@ -259,7 +259,7 @@ The covered parts follow mostly the reference implementations.
 
   \subsection{C-Style Memory Layout}
     Similarly to the previous section is the C-memory layout used to allow for casts not otherwise possible, like it is shown in \autoref{lst:inheritanceStruct}.
-    The field definitions have to appear in the same order, to creating the same memory layout, for all types in a type hierarchy\autocite[repr(r)]{rust-nom}.
+    The field definitions have to appear in the same order, to create the same memory layout, for all types in a type hierarchy\autocite[repr(C)]{rust-nom}.
     This approach has the issue that functions still wouldn't be inherited and would have to be implemented by the user, repeatedly, for all valid \structs.
     Similarly to the \traits there is an issue with the casting if the memory of the \struct is managed by a wrapper type.
     A nice property about this approach is that it fits better in normal Rust code and implicit casts to \codr{traits} can still happen as the proper type is used.
@@ -269,7 +269,7 @@ The covered parts follow mostly the reference implementations.
 \section{Support Cyclic Graphs and Struct Inheritance}
   This section will focus on the implementation of the discussed solutions of \autoref{sec:graph} and \autoref{sec:inheritance}.
   The wrapper is named \PtrT since it provides the functionality of working with the type \T almost as if it was being pointed to by a pointer without restrictions.
-  This means more concrete that this wrapper enables \T to be passed around with reference counting and runtime borrow rules checking while being able to be cast to different types and trait objects.
+  More concrete means this that this wrapper enables \T to be passed around with reference counting and runtime borrow rules checking while being able to be cast to different types and trait objects.
 
   \subsection{Memory Layout}
     \LstTikzBox{\ptrStruct}[.42\linewidth]{data/ptrStruct.rs}
@@ -290,8 +290,8 @@ The covered parts follow mostly the reference implementations.
     Merging of the to types results in the memory layout seen in \autoref{lst:ptrStruct}.
     Compared to \autoref{lst:rcRefCellStruct} this uses one additional pointer.
     \RcT only needs one pointer for the \codr{RcBox<T>} that contains the meta data as well as the value.
-    The \codr{PhantomData<T>} to provide the compiler with information which \enquote{is used when computing certain safety properties.}\autocite[std::marker::PhantomData]{rust-doc}.
-    \RefCellT doesn't need any pointers what so ever.
+    The \codr{PhantomData<T>} provides the compiler with information which \enquote{is used when computing certain safety properties.}\autocite[std::marker::PhantomData]{rust-doc}.
+    \RefCellT doesn't need any pointers whatsoever.
     Since there can be many \PtrTs that point to the same data but have a different views\footnote{
       The data pointer is not so much the problem, but the vtable pointer from trait objects are.
     } the value can not be shared between the \PtrT instances.
@@ -324,7 +324,7 @@ The covered parts follow mostly the reference implementations.
     That means that both, borrowing and cloning has to happen in a synchronized way to achieve object parallelism.
     But, the parallelism benefits can only be gained if the fields of the objects can be serialized in parallel.
     The binary format is designed in such a way that the field data can be read in parallel, with a little extra work parallel writing is also possible.
-    To support also that kind of parallelism, at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
+    To also support that kind of parallelism, at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
 
     \PtrT would have to be made from a \ArcT and \RwLockT, instead of \RcT and \RefCellT, to allow for object parallelism.
     Which means that every object access would be behind a mutex and multiple atomic operations\autocite[std::sync::Arc, std::sync::RwLock]{rust-doc}.
@@ -334,7 +334,7 @@ The covered parts follow mostly the reference implementations.
     Leading to possible two mutex locks per field access when serialisation of the value and also for all accesses the users does.
     Apart from the objective to use Rusts \emph{type system} for the thread safety guarantees it is further highly unlikely that the mutex locks do not ruin the performance.
 
-    Another consequence of \PtrT is, that the specification independent code can not be a standalone create that can be used as library.
+    Another consequence of \PtrT is, that the specification independent code can not be contained in a standalone create which can be used as library.
     \PtrT depends on the lookup table which has to be generated.
 
   \subsection{Optimisations}
@@ -373,7 +373,7 @@ The covered parts follow mostly the reference implementations.
 \section{Binding Architecture}
   This section will discuss the created architecture of generated bindings and the changes made to the one introduced in \autoref{sec:skillArch}.
   While the generated code is a central point of this thesis, the generator itself is not so much.
-  The reason for that is, that the generator differs in few points from the reference generators of other languages.
+  The reason for that is, that the generator differs in a few points from the reference generators of other languages.
   This is the case as the same infrastructure was used and no modifications had to be made to support Rust.
 
   \autoref{fig:archActual} shows the actual architecture of the generated code.
@@ -383,7 +383,7 @@ The covered parts follow mostly the reference implementations.
   \begin{figure}[H]
     \centering
     \input{data/actualArch}
-    \caption{Actual Architecture}\label{fig:archActual}
+    \caption{Binding Architecture}\label{fig:archActual}
   \end{figure}
 
   Not depicted in the image are:
@@ -463,22 +463,21 @@ The covered parts follow mostly the reference implementations.
       The \Deleteable trait provides an interface that allows the objects to be marked for deletion.
       This interface should not be visible for the user but there is no way to do that in Rust.
 
-      Additionally to the types present in the users specification \Age also implements \linebreak
-      \ForeignObject that belongs to the \Foreign \struct.
+      Additionally to the types present in the users specification \Age also implements \ForeignObject that belongs to the \Foreign \struct.
       The \Foreign type is exclusively used to create an interface that allows the serialization of types and fields that were not known at generation time.
 
       \LstTikzFig{data/userType.rs}{Generated User Type Age}{lst:userType}
 
     \subsubsection{Type Pools}
       The biggest change compared to \autoref{fig:archDesire} appears around the \UserTypePool.
-      What was one type had to be split up into five.
+      This type had to be split up into five.
       The \Pool type is needed for code reuse as Rust doesn't provide inheritance.
       Most of the code that is needed for \UserTypePools is specification independent and can be reused without issue.
       The problem with code reuse through composition is that it is difficult to provide the general, contained type with the containing \struct's data or special functions.
       In case that the containing \struct calls the functions of \Pool data and special functions can be made available.
       But if the contained \struct is called by something else a dependency cycle occurs that has to be broken with options form \autoref{sec:graph}, which can lead to violations of borrow rules.
       The \Pool is used by other objects than the \UserTypePools that do not know of the \UserTypePools.
-      Because of that the \UserPartsMaker exists that externalizes the special functions of \UserTypePool so that they are callable by \Pool.
+      Because of that \UserPartsMaker exists which externalizes the special functions of \UserTypePool so that they are callable by \Pool.
       Since \UserTypePools are not a \Pool and because they have to be able to be stored in a container the \PoolProxy \trait was created.
       \PoolProxy is an interface for \UserTypePools that provides access to the \Pool component in \UserTypePools as well as the ability to store \UserTypePools of different \UserTypes in containers.
 
@@ -504,7 +503,7 @@ The covered parts follow mostly the reference implementations.
 
   \subsection{Specification Independent Code}
     Most of the architecture is separate from the specification and doesn't have to be generated by a generator.
-    This includes the reading and writing of the build in types, the parsing and writing of the files the string pool and the traits that need to be implemented.
+    This includes the reading and writing of the build in types, the parsing and writing of the files, the string pool and the traits that need to be implemented.
     As the lookup table has to be generated which means that \PtrT is dependent on generated code and in turn most of the specification independent code as well.
     This section focuses on some of more interesting parts of these types.
 
@@ -519,7 +518,7 @@ The covered parts follow mostly the reference implementations.
       \SkillString has to provide a method to obtain an immutable reference to the contained \String to be somewhat compatible with other libraries.
       Since the removal of a \SkillString that represents a literal used by a type would lead to problems there is no way for the user to delete a \SkillString explicitly.
       The explicit deletion is replaced with automatic pruning on writing.
-      Since all \SkillString have to be wrapped in an \RcT the counters can be used to check weather the \SkillString has to be serialized or can be discarded.
+      Since all \SkillString have to be wrapped in an \RcT the counters can be used to check whether the \SkillString has to be serialized or can be discarded.
 
     \subsubsection{Foreign Types and Fields}
       Special types are used if the field or type encountered upon deserialisation was not known at the time the code was generated.

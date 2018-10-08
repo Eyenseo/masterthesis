@@ -3,7 +3,7 @@
 
 \chapter{Evaluation}\label{chap:eval}
 The following sections will focus on reasons for the missing parallelism, performance impacts from the Rust type system and testing of implemented features for the \gls{skill} binding.
-This is predominantly done through the provided test suits as well as a custom benchmark test.
+This is predominantly done through the provided test suites as well as a custom benchmark test.
 
 \section{Parallelism}
   A feature that wasn't implemented was the parallelisation of the serialization.
@@ -14,36 +14,36 @@ This is predominantly done through the provided test suits as well as a custom b
   Wrapper types have to be used that enforce the rules at runtime.
   That means that the research point, how the \emph{type system} can be used to implement the serialization in a safe parallel manner, is a negative result.
   While it is not impossible to implement the serialisation in a `parallelized' way the implications make it quite clear that it would be unwise to do so.
-  Since two mutex locks have to be made per field access there is only a slow down to be obtained, that would be forced on the user too.
+  Since two mutex locks have to be made per field access, there is only a slow down to be obtained, that would be forced on the user too.
 
 \section{Tests}
-  There are two test suits present in the \gls{skill} repository\autocite{skill-repo}.
-  These test suits are used for the existing bindings generators and were used to develop in a test driven manner.
+  There are two test suites present in the \gls{skill} repository\autocite{skill-repo}.
+  These test suites are used for the existing bindings generators and were used to develop in a test driven manner.
 
-  The first test suit is used to test reading capabilities of bindings.
+  The first test suite is used to test reading capabilities of bindings.
   To do that specifications are used to generate Rust bindings.
   Then a test file is generated that features a test method for every test data file.
   Test data files test for example the build-in types or inheritance.
   The generated binding as well as the test file are then compiled and tested by \cod{cargo test}.
-  All tests from this test suit are passed successfully that do not require restrictions to fail.
+  All tests from this test suite are passed successfully that do not require restrictions to fail.
 
-  The second test suit tests the \gls{api} and with that requires more thorough adjustments for each generator.
-  This test suit does not use \gls{skill} binary files as input.
+  The second test suite tests the \gls{api} and with that requires more thorough adjustments for each generator.
+  This test suite does not use \gls{skill} binary files as input.
   Instead it uses a specification file and a \gls{json} file that describes objects to create a graph with objects from the specification.
-  This means that similarly to the first test suit a binding is generated.
+  This means that similarly to the first test suite a binding is generated.
   But instead of requiring only the reading from a given input file, here the tests, in the test file, have to use the \gls{api}, of the binding, to create objects and use these to set and get values.
-  For Rusts test suit the tests are generated in a way that the \gls{api} is used to create a \SkillFile, create graphs based on the test suits \gls{json} input, write it to file, read that file back and compare the read data to the \gls{json} input.
-  Similarly to the first test suit, all tests pass successfully that do not require restrictions to fail.
+  For Rusts test suite the tests are generated in a way that the \gls{api} is used to create a \SkillFile, create graphs based on the test suites \gls{json} input, write it to file, read that file back and compare the read data to the \gls{json} input.
+  Similarly to the first test suite, all tests pass successfully that do not require restrictions to fail.
 
   Furthermore were additional tests created.
   Some of the tests use multiple specifications to test the interoperability of Rust bindings and the \Foreign types.
   Another is used to test for memory leaks that can be created through the reference counting of \PtrT.
   Lastly there is a test that tests the \emph{custom} feature.
-  These manually created tests are executed as part of the second test suit as they depend on the generated bindings.
+  These manually created tests are executed as part of the second test suite as they depend on the generated bindings.
 
   To validate that the created \gls{skill} binary files are interoperable with other existing tools and bindings \cod{skillView}\autocite{skill-view} was used.
   The tool allows to explore \gls{skill} binary files.
-  Since the tool didn't show any issues with the files and because the first test suits input data comes from other generators, is interoperability demonstrated.
+  Since the tool didn't show any issues with the files and because the first test suites input data comes from other generators, interoperability is demonstrated.
 
 \section{Performance}
   \autoref{fig:bench} shows a comparison of Rust vs C++.
