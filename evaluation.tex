@@ -162,7 +162,7 @@ This is predominantly done through the provided test suites as well as a custom 
   Another improvement was made to the implementation of Rust and C++ implementation of size calculation, reading and writing for variable length integers, used by \cod{v64} and pointers.
   \autoref{lst:v64EncOld} and \autoref{lst:v64DecOld} show reference implementations, found in \citetitle{skill-tr}\autocite{skill-tr}.
   The C++ implementation already featured the unrolled loop and defered size calculation, but it still used the same bit masks and shifts and needed two integers for decoding.
-  \autoref{lst:v64EncNew}, \autoref{lst:v64DecNew} and \autoref{lst:v64OffNew} show the improved versions of encoding, decoding and the size calculation.
+  \autoref{lst:v64OffNew}, \autoref{lst:v64EncNew} and \autoref{lst:v64DecNew} show the improved versions of encoding, decoding and the size calculation.
   The previous decoding implementation needed one \cod{OR}, one \cod{SHIFT}, one \cod{COND}, two \cod{AND} and two \cod{ASSIG} operations per byte.
   The improved version needs one \cod{AND} operation and one \cod{ASSIG} operation less per byte and made an integer obsolete.
   The size calculation can be done with just one comparison per byte, removing a additional \cod{AND} operation.
@@ -171,8 +171,9 @@ This is predominantly done through the provided test suites as well as a custom 
   \LstTikzFig{data/v64_enc_old.cpp}{Reference encode implementation for \cod{v64}\autocite{skill-tr}}{lst:v64EncOld}[language=C++]
   \LstTikzFig{data/v64_dec_old.cpp}{Reference decode implementation for \cod{v64}\autocite{skill-tr}}{lst:v64DecOld}[language=C++]
 
+
+  \LstTikzFig{data/v64_off_new.cpp}{Optimized size implementation for \cod{v64}}{lst:v64OffNew}[language=C++]
   \LstTikzFig{data/v64_enc_new.cpp}{Optimized encode implementation for \cod{v64}}{lst:v64EncNew}[language=C++]
   \LstTikzFig{data/v64_dec_new.cpp}{Optimized decode implementation for \cod{v64}}{lst:v64DecNew}[language=C++]
-  \LstTikzFig{data/v64_off_new.cpp}{Optimized size implementation for \cod{v64}}{lst:v64OffNew}[language=C++]
 
 \end{document}

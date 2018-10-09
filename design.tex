@@ -270,6 +270,11 @@ The covered parts mostly follow the reference implementations.
   More concrete means this that this wrapper enables \T to be passed around with reference counting and runtime borrow rules checking while being able to be cast to different types and trait objects.
 
   \subsection{Memory Layout}
+    The majority of the \PtrT type consists of \RcT and \RefCellT, combined into one cohesive wrapper.
+    That means the original source code was copied and combined.
+    This was needed as this type is supposed to be able to be castable, meaning that the contained value should be able to represent a \struct or trait object.
+    Without this manual combination the reference counting and mutability state monitoring would inhibit proper casting.
+
     \LstTikzBox{\ptrStruct}[.42\linewidth]{data/ptrStruct.rs}
     \LstTikzBox{\rcRefCellStruct}[.42\linewidth]{data/rcRefCellStruct.rs}
     \begin{figure}[ht]
@@ -278,11 +283,6 @@ The covered parts mostly follow the reference implementations.
       \subfloat[Memory Layout from \RcT and \RefCellT\label{lst:rcRefCellStruct}]{\usebox{\rcRefCellStruct}}
       \caption{Memory Layout Comparison}\label{lst:memoryLayout}
     \end{figure}
-
-    The majority of the \PtrT type consists of \RcT and \RefCellT, combined into one cohesive wrapper.
-    That means the original source code was copied and combined.
-    This was needed as this type is supposed to be able to be castable, meaning that the contained value should be able to represent a \struct or trait object.
-    Without this manual combination the reference counting and mutability state monitoring would inhibit proper casting.
 
     Merging of the to types results in the memory layout seen in \autoref{lst:ptrStruct}.
     Compared to \autoref{lst:rcRefCellStruct} this uses one additional pointer.
