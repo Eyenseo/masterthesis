@@ -230,12 +230,10 @@ The covered parts follow mostly the reference implementations.
     In \autoref{sec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \cast function.
     The first field of a trait object is the data pointer to the \struct and copying the pointer is no issue.
     However the second field is more difficult to fill as the correct vtable pointer has to be created.
-    Fortunately, Rust allows the creation of a trait object from a \codr{null} pointer\footnote{
-      No documentation has been found that defines this behaviour.
-    } which can be seen in \autoref{lst:nullTraitObject}.
+    Fortunately, Rust allows the creation of a trait object from a \codr{null} pointer which can be seen in \autoref{lst:nullTraitObject}\autocite[2.2. Exotically Sized Types]{rust-nom}.
     \autocite{rust-digg}
 
-    \LstTikzFig{data/nullTraitObject.rs}{Obtaining a VTable from \codr{null}}{lst:nullTraitObject}
+    \LstTikzFig{data/nullTraitObject.rs }{Obtaining a VTable from \codr{null}}{lst:nullTraitObject}
 
     \autoref{lst:nullTraitObject} shows how to obtain the vtable pointer.
     There is a \codr{Proper struct} and a \codr{trait Object} that is implemented for \codr{Proper}.

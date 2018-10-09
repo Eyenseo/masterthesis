@@ -33,7 +33,7 @@ Finally the results will be evaluated through functional and performance tests.
       Custom
        & Custom fields are fields that the user provides the type information for and can be thought of as extension of auto.\autocite{skill-tr}      \\
     \end{tabu}
-    \caption{Feature descriptions that the generator may implement}\label{tab:feat}
+    \caption{Feature descriptions that the generator implements}\label{tab:feat}
   \end{table}
 
 \section{SKilL}\label{sec:skill}
@@ -190,7 +190,7 @@ Finally the results will be evaluated through functional and performance tests.
     Additionally Rust attaches a \emph{lifetime} to the borrow that is the lifetime of the referenced memory allocation.
     A borrow may not outlive its lifetime, meaning that there can't be a reference to freed memory.
 
-    \LstTikzFig{data/borrow_mut.rs}{Rust Borrow Mechanics}{lst:borrowing}
+    \LstTikzFig{data/borrow_mut.rs }{Rust Borrow Mechanics}{lst:borrowing}
 
     \autoref{lst:borrowing} depicts a simple example demonstrating these rules.
     In line 2 a new \emph{owned} string is created -- \codr{"Hello"} is a string literal and can't be modified.
@@ -229,6 +229,15 @@ Finally the results will be evaluated through functional and performance tests.
     They define a set of functions that have to be implemented by a type that provides a certain \trait.
     Besides \traits, \codr{impl} blocks can be used to add methods to \structs.
 
+    \LstTikzBox{\genericsBase}[.42\linewidth]{data/generics.rs}[lastline=14]
+    \LstTikzBox{\genericsCall}[.42\linewidth]{data/generics.rs}[firstline=16,firstnumber=16]
+    \begin{figure}[ht]
+      \captionsetup{type=lstlisting}
+      \subfloat[Type Structure]{\usebox{\genericsBase}\label{lst:genericsBase}} \hfill%
+      \subfloat[Generics and Trait Usages]{\usebox{\genericsCall}\label{lst:genericsCall}}
+      \caption{Rust Generics and Trait Objects}\label{lst:generics}
+    \end{figure}
+
     While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally offer.
     Inheritance is one of the features that differ.
     It is not possible to inherit from a \struct, \traits however can inherit each other.
@@ -240,15 +249,6 @@ Finally the results will be evaluated through functional and performance tests.
     This is in contrast to C++ where only the function invocation triggers the instantiation for it\autocite[§17.8.1 10]{cpp-iso} which allows more code to be valid.
     As solution either composition or code duplication can be used, where the later can be done through macros.
     \autocite[10. Generic Types, Traits, and Lifetimes, 17. Object Oriented Programming Features of Rust]{rust-book}
-
-    \LstTikzBox{\genericsBase}[.42\linewidth]{data/generics.rs}[lastline=14]
-    \LstTikzBox{\genericsCall}[.42\linewidth]{data/generics.rs}[firstline=16,firstnumber=16]
-    \begin{figure}[ht]
-      \captionsetup{type=lstlisting}
-      \subfloat[Type Structure]{\usebox{\genericsBase}\label{lst:genericsBase}} \hfill%
-      \subfloat[Generics and Trait Usages]{\usebox{\genericsCall}\label{lst:genericsCall}}
-      \caption{Rust Generics and Trait Objects}\label{lst:generics}
-    \end{figure}
 
     \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
     The functions \codr{who} takes a parameter \codr{&self} which de-sugars to \codr{self: &Pinky} and \codr{self: &Becci}.
@@ -302,16 +302,6 @@ Finally the results will be evaluated through functional and performance tests.
     Matching can be found in many aspects of the language and is mostly a convenience feature as functions can be used to unwrap the values as well.
     \autocite[Enums and Pattern Matching]{rust-doc}
 
-  \subsection{Visibility and Grouping}
-    Visibility in Rust is specified with the \pub keyword.
-    To specify that a field is public to the crate it is prefixed as \codr{pub(crate) foo: String}.
-    Apart from fields and types \pub is also used for modules.
-    Modules can be compared to Javas packages or C++ namespaces.
-    Files themselves are a module and further modules can be declared in files with the \mod keyword.
-    This can be used to create a more fine grained grouping and visibility resolution.
-    To flatten the module hierarchy, in case that the file module is not wanted, or to create a more convenient user \gls{api} the \use keyword can be used to pull types in another module.
-    \autocite[Visibility and Privacy, Use declarations]{rust-ref}
-
   \subsection{Cells and Interior Mutability}\label{sec:cell}
     \UnsafeCellT is a wrapper type from Rusts standard library.
     This wrapper allows to change contained data without having to be mutable.
@@ -328,6 +318,16 @@ Finally the results will be evaluated through functional and performance tests.
     In line 7 it is possible to modify the value of \x.
     The value of \y in line 8 however raises the compiler an error.
     The mutability of \x would lead to data races and because of that \CellT and \RefCellT are not marked as thread safe\autocites[std::cell]{rust-doc}[Send and Sync]{rust-nom}.
+
+  \subsection{Visibility and Grouping}
+    Visibility in Rust is specified with the \pub keyword.
+    To specify that a field is public to the crate it is prefixed as \codr{pub(crate) foo: String}.
+    Apart from fields and types \pub is also used for modules.
+    Modules can be compared to Javas packages or C++ namespaces.
+    Files themselves are a module and further modules can be declared in files with the \mod keyword.
+    This can be used to create a more fine grained grouping and visibility resolution.
+    To flatten the module hierarchy, in case that the file module is not wanted, or to create a more convenient user \gls{api} the \use keyword can be used to pull types in another module.
+    \autocite[Visibility and Privacy, Use declarations]{rust-ref}
 
 \section{Rust Oddities}
   This section will focus on oddities and questionable design choices that have been encountered while working with Rust.
@@ -350,6 +350,18 @@ Finally the results will be evaluated through functional and performance tests.
     In this case there is really no modification going on too.
 
     \LstTikzFig{data/file.rs}{File is not Subject to Borrow Rules}{lst:rustfile}
+
+  \subsection{Coercion of \texttt{trait}s}
+    Rust uses \emph{coercion} as the name for implicit casts.
+    \autoref{lst:coercionTwo} shows strange mechanic that is related to coercion.
+    Here, \A is inherited by \B and \B and \A are implemented for \Foo.
+    Then \codr{x} is borrowed as \codr{&B} and through \codr{rb} the function \fun of \A is called successfully.\footnote{
+      \codr{rb} and \codr{ra} have to be borrows as their size is not known at compile time.\autocite[E0277 referes to 19.4 Advanced Types]{rust-doc}
+    }
+    But in line 12 the compiler raises an error, informing us that \codr{rb} is not of type \A.
+    Further is it not possible to cast \codr{rb} to \codr{A&} with the \codr{as} keyword, as seen in line 13.
+
+    \LstTikzFig{data/coercion_2.rs}{Coercion of Traits}{lst:coercionTwo}
 
   \subsection{Immutability Resolution}
     Rusts immutability is an on off switch, there is no mechanism to define an attribute as immutable.
@@ -384,19 +396,6 @@ Finally the results will be evaluated through functional and performance tests.
       \usebox{\staticThree}
       \caption{Static Functions for Traits}\label{lst:static}
     \end{figure}
-
-  \subsection{Coercion of \texttt{trait}s}
-    Rust uses \emph{coercion} as the name for implicit casts.
-    \autoref{lst:coercionTwo} shows strange mechanic that is related to coercion.
-    Here, \A is inherited by \B and \B and \A are implemented for \Foo.
-    Then \codr{x} is borrowed as \codr{&B} and through \codr{rb} the function \fun of \A is called successfully.\footnote{
-      \codr{rb} and \codr{ra} have to be borrows as their size is not known at compile time.\autocite[E0277 referes to 19.4 Advanced Types]{rust-doc}
-    }
-    But in line 12 the compiler raises an error, informing us that \codr{rb} is not of type \A.
-    Further is it not possible to cast \codr{rb} to \codr{A&} with the \codr{as} keyword, as seen in line 13.
-
-    \LstTikzFig{data/coercion_2.rs}{Coercion of Traits}{lst:coercionTwo}
-
   \subsection{Lifetimes}
     Lifetimes are needed for the Rust compiler to verify the compliance with the borrow rules, in particular for memory safety.
     The example from \autoref{lst:match} is about the lifetimes of borrows.
@@ -422,5 +421,4 @@ Finally the results will be evaluated through functional and performance tests.
       \usebox{\borrowArgTwo}\\\vspace*{.75em}%
       \caption{Borrowing from \RefCellT in argumentlist can lead to panics}\label{lst:argBorrow}
     \end{figure}
-
 \end{document}

@@ -7,7 +7,6 @@ struct TraitObject {
   pub data: *const (),
   pub vtable: *const (),
 }
-
 fn main() {
   let vtable = unsafe {
     std::mem::transmute::<_, TraitObject>(
