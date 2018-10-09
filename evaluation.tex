@@ -17,7 +17,7 @@ This is predominantly done through the provided test suites as well as a custom 
   Since two mutex locks have to be made per field access, there is only a slow down to be obtained, which would be forced on the user, too.
 
 \section{Tests}
-  There are two test suites present in the \gls{skill} repository\autocite{skill-repo}.
+  There are two test suites present in the \gls{skill} repository\autocite{skill-repo} that use 28 specifications.
   These test suites are used for the existing bindings generators and were used to develop in a test driven manner.
 
   The first test suite is used to test reading capabilities of bindings.
@@ -25,7 +25,7 @@ This is predominantly done through the provided test suites as well as a custom 
   Then a test file is generated that features a test method for every test data file.
   Test data files test for example the build-in types or inheritance.
   The generated binding as well as the test file are then compiled and tested by \cod{cargo test}.
-  All tests from this test suite are passed successfully that do not require restrictions to fail.% TODO mention amount
+  All 644 tests from this test suite are passed successfully that do not require restrictions to fail.% TODO mention amount
 
   The second test suite tests the \gls{api} and with that requires more thorough adjustments for each generator.
   This test suite does not use \gls{skill} binary files as input.
@@ -33,15 +33,15 @@ This is predominantly done through the provided test suites as well as a custom 
   This means that similarly to the first test suite a binding is generated.
   But instead of requiring only the reading from a given input file, here the tests, in the test file, have to use the \gls{api}, of the binding, to create objects and use these to set and get values.
   For Rusts test suite the tests are generated in a way that the \gls{api} is used to create a \SkillFile, create graphs based on the test suites \gls{json} input, write it to disc, read it back from disc and compare the read data to the \gls{json} input.
-  Similarly to the first test suite, all tests pass successfully that do not require restrictions to fail.% TODO mention amount
+  Similarly to the first test suite, all 189 tests pass successfully that do not require restrictions to fail.% TODO mention amount
 
-  Furthermore were additional tests created.
+  Furthermore were 10 additional tests created.
   Some of the tests use multiple specifications to test the interoperability of Rust bindings and the \Foreign types.
   Another is used to test for memory leaks that can be created through the reference counting of \PtrT.
   Lastly there is a test that tests the \emph{custom} feature.
   These manually created tests are executed as part of the second test suite as they depend on the generated bindings.
 
-  To validate that the created \gls{skill} binary files are interoperable with other existing tools and bindings \cod{skillView}\autocite{skill-view} was used.
+  To validate that the created \gls{skill} binary files are interoperable with other existing tools and bindings \cod{skillView}\autocite{skill-view} was used throughout the development process.
   The tool allows to explore \gls{skill} binary files.
   Since the tool didn't show any issues with the files and because the first test suites input data comes from other generators, interoperability is demonstrated.
 
