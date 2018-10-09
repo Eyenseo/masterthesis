@@ -10,7 +10,7 @@ A central point was to research how the Rust type system can be used to execute 
 
 The generator that has been implemented for Rust produces bindings that satisfy the core language of \gls{skill}, with the exception of the public reflection \gls{api} and  enforced restrictions.
 Both deficits were acknowledged by supervisor Timm Felden.
-Furthermore are the \emph{auto} and \emph{custom} features of \gls{skill} implemented.
+Furthermore, the \emph{auto} and \emph{custom} features of \gls{skill} were implemented.
 
 The correctness of the generated bindings was tested through existing test suits, new tests for the test suits as well as manual testing with existing tools.
 The later was done to further prove that interoperability exists between Rust and other bindings.
@@ -20,19 +20,19 @@ The central issue was that \gls{skill} allows for graph like structures which co
 These rules are essential for thread safety as they act like a reader-writer lock on references that exists as long as the reference.
 To create cycles wrappers are used that enforce the borrow rules at runtime.
 Since these wrappers have a state the state has to be accessed in a synchronized fashion if these wrappers are shared across threads.
-Further is object parallelism not enough, field parallelism is required to benefit from parallelism.
+Also object parallelism is not enough, field parallelism is required to benefit from parallelism.
 This means that fields of the objects have to be wrapped by a synchronizing wrapper too.
 The resulting architecture was deemed too inefficient in comparison to a sequential solution.
 
-Apart from the issue with parallelism, was inheritance and casting an interesting subject.
+Apart from the issue with parallelism, inheritance and casting were interesting subjects.
 Rust features inheritance for \traits which are comparable to Javas \codj{interface}s but not for \structs which can be compared to Cs \structs.
-Further are only casts from a \struct to a \trait possible but not from a \trait to a \struct or from a \trait to a \trait.
+Furthermore, only casts from a \struct to a \trait are possible, not however from a \trait to a \struct or from a \trait to a \trait.
 To allow all casts a method was created that requires the \structs to have a C memory layout.
 The method used a lookup table to check if a cast is valid or not.
 To execute casts to a trait a vtable pointer is necessary, which is also contained in the lookup table.
 
 The performance of Rust bindings is $\times 4.6$ slower than the parallelized C++ version.
-This is not only the result of the missing parallelism but also because of the enforcement of borrow rules at run time.
+This is due to the missing parallelism and the enforcement of borrow rules at run time.
 Since most time was spent searching for solutions for the previously mentioned issues and an initial Rust implementation there are opportunities to optimise Rust bindings.
 For a parallelized version the architecture and wrapper types would have to be changed drastically.
 One option for such an architecture would be to use pointers throughout the internal code which would mean that that code would suffer from the same issues as C and C++.

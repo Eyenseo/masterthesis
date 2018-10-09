@@ -1,17 +1,23 @@
 \documentclass[thesis]{subfiles}
 \begin{document}
+
 {
 \let\cleardoublepage\relax
+
 \addchap*{Abstract}
+
 The goal of this thesis is to provide a generator for \glsentrytext{skill} that targets Rust.
 Since Rusts type system enforces strict rules to offer guaranteed thread safety the generated binding has to accommodate these rules, which makes it difficult to create a graph with cycles.
 A lot of the effort goes into the research and creation of solutions for the missing inheritance between \structs and the resulting missing casting functionality in the language.
-In conjunction has an option to be found that allowed Rusts rules to be enforced at runtime that workes with the enhanced inheritance support.
-Peculiarly is the resulting implementation not able to benefit from Rusts rules in regard to safe parallelism, as the runtime enforcement of these rules inhibits parallelism.
+In conjunction an option has to be found that allows Rusts rules to be enforced at runtime that works with the enhanced inheritance support.
+Peculiarly, the resulting implementation is not able to benefit from Rusts rules in regard to safe parallelism, as the runtime enforcement of these rules inhibits parallelism.
 To validate that the implementation works as expected pre-existing functional tests are used.
-Additionally performance tests are executed to see how Rust bindings fare against an reference implementation in C++.
+Additionally performance tests are executed to see how Rust bindings fare against a reference implementation in C++.
+
 }
+
 \addchap*{Kurzfassung}
+
 Das Ziel dieser Arbeit ist es einen Generator für \glsentrytext{skill} zu erstellen, welcher Rust Code erzeugt.
 Da Rust strenge Regeln anwendet, um Threadsicherheit garantieren zu können, muss der generierte Code diesen folgen, was Probleme bei der Darstellung von Graphen mit Zyklen bereitet.
 Viel Zeit wird für die Findung von Alternativen und Implimentierungen für Vererbung zwischen \structs und deren fehlenden Konvertierungen aufgewendet.
@@ -19,4 +25,5 @@ Dazu passend muss auch eine Möglichkeit gefunden werden, die Rusts Regeln zur L
 Auffallend ist, dass die Implementierung die Threadsicherheitsgarantien von Rusts Regeln  nicht nutzen kann, weil die Einhaltung dieser, zur Laufzeit, die Parallelisierbarkeit einschränkten.
 Um zu validieren, dass die Implimentierungen wie erwartet funktioniert, werden bereits existierende funktionale Tests verwendet.
 Außerdem wird die Durchsatzrate, des generierten Rust Codes, mit der des generiertem C++ Codes verglichen.
+
 \end{document}

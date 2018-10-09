@@ -1,14 +1,15 @@
 \documentclass[thesis]{subfiles}
 \begin{document}
 
-\chapter{Design and Implementation}
+\chapter{Design and Implementation}%
+\vspace*{-1em}
 In \autoref{sec:intro} the basics of \gls{skill} and Rust were explained.
 This section will feature the design and implementation of the common and generated rust code.
 The first sections will present problems that arise from Rusts type system.
 Afterwards the solution for them will be presented.
 These sections are the most elaborate ones as the decisions have far reaching consequences and differ the most from the other implementations.
 Lastly the generated code and the resulting architecture will be covered.
-The covered parts follow mostly the reference implementations.
+The covered parts mostly follow the reference implementations.
 
 \section{Cyclic Graphs in Rust}\label{sec:graph}
   \gls{skill} allows the creation of graphs with its references\autocite[9]{skill-dis} as most languages do.
@@ -38,10 +39,10 @@ The covered parts follow mostly the reference implementations.
     This allows the creation of the initial \Node object \codr{x}.
     It is further possible to assign the root object \codr{x} to the child object \codr{y}.
     But from that point on problems appear.
-    First of all does \codr{y} not live long enough -- this is the direct result of the lifetime specifier.
-    Secondly has \codr{y} to be assigned to \codr{x.next} and with that \codr{x} needs to be mutable.
+    First of all, \codr{y} does not live long enough -- this is the direct result of the lifetime specifier.
+    Secondly, \codr{y} has to be assigned to \codr{x.next} and with that \codr{x} needs to be mutable.
     This should sound familiar to the problems shown in \autoref{sec:rustBorr}.
-    Since \codr{x} is already borrowed by \codr{y.next}, \codr{x} can't be borrowed again mutable to assign \codr{y} to it.
+    Since \codr{x} is already borrowed by \codr{y.next}, \codr{x} can't be borrowed mutable again to assign \codr{y} to it.
 
   \subsection{Pointers in Rust}
     Coming from a C++ background the next thing that comes to mind would be (raw) pointers.
@@ -76,8 +77,8 @@ The covered parts follow mostly the reference implementations.
       \caption{Rust Pointers and Unsafe Code}\label{lst:pointers}
     \end{figure}
 
-    The issue, why pointers are not the solution for our graph problem and why they are uncommon in Rust code, comes apparent in \autoref{lst:pointersTwo}.
-    There a pointer \codr{ps} is created that points to the mutable \String \codr{s}.
+    Why pointers are not the solution for our graph problem and why they are uncommon in Rust code, becomes apparent in \autoref{lst:pointersTwo}.
+    A pointer \codr{ps} is created that points to the mutable \String \codr{s}.
     Line 4 and 5 indicate that there might be an issue -- it is possible to create two \emph{mutable} references to the same value.
     Line 6 and 7 prove that the safety rules of Rust have been broken, as it is possible to use both \codr{rsm1} and \codr{rsm2} in methods that mutate \codr{s}.
     With these rules broken also thread safety comes undone and with that most of the incentive to use Rust is lost.
@@ -86,8 +87,8 @@ The covered parts follow mostly the reference implementations.
   \subsection{Memory Arenas and Cells}\label{sec:memoryArena}
     The \autoref{sec:cell} introduced \UnsafeCellT and companion types.
     This section will explore an option to use these to create a cyclic graph.
-    In line 8 of \autoref{lst:memoryArena} a mutable \Vec is created, with two instances of \Node.
-    In line 12 the first instance is assigned a new string literal.
+    In line 8 of \autoref{lst:memoryArena} a mutable \Vec is created with two instances of \Node.
+    In line 12 a new string literal is assigned to the first instance.
     In line 13 and 14 a reference cycle is created between the two \Foo instances.
     This is in contrast to \autoref{lst:cyclesTwo}, which failed.
     Apart from \UnsafeCellT, which solves the borrowing error, here a vector is used to store the \Node instances.
