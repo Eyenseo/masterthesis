@@ -6,10 +6,10 @@ impl Foo {
       self.gun(); // mutable borrow occurs here
     } // immutable borrow ends here
   }
-  fn gun(&mut self) { println!("BAR!"); }
+  fn gun(&mut self) { println!("Norbert"); }
 }
 
 fn main() {
-  let mut foo = Foo { opt: Some(String::from("Helo World!")), };
+  let mut foo = Foo { opt: Some(String::from("Norbi")), };
   foo.fun();
 }
