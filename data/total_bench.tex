@@ -1,7 +1,8 @@
 \begin{tikzpicture}
   \begin{axis}[
-      width=.475\linewidth,
-      enlargelimits=0.05,
+      width=.8\linewidth,
+      height=.3\textheight,
+      enlargelimits=0.005,
       xlabel = Seconds,
       ylabel = Megabyte,
     ]
@@ -14,7 +15,7 @@
 
     % GCC
     \addplot+[
-      MediumVioletRed,
+      draw=none,
       forget plot,
     ]
     table [
@@ -24,9 +25,10 @@
         mark=,
       ]
       {data/cpp_total.csv}
-    coordinate [pos=0.5] (CA)
-    coordinate [pos=0.8] (CB)
+    coordinate [pos=0] (fCA)
+    coordinate [pos=1] (fCB)
     ;
+    \draw[MediumVioletRed] (fCA) -- (fCB) coordinate[pos=.65](CA) coordinate[pos=.8](CB);
     \xdef\cslope{\pgfplotstableregressiona}
     \addplot+[
       MediumVioletRed,
@@ -42,7 +44,7 @@
       {data/cpp_total.csv};
 
     \addplot+[
-      MediumPurple,
+      draw=none,
       forget plot,
     ]
     table [
@@ -52,9 +54,10 @@
         mark=,
       ]
       {data/cpp_single_total.csv}
-    coordinate [pos=0.3] (CSA)
-    coordinate [pos=0.4] (CSB)
+    coordinate [pos=0] (fCSA)
+    coordinate [pos=1] (fCSB)
     ;
+    \draw[MediumPurple] (fCSA) -- (fCSB) coordinate[pos=.5](CSA) coordinate[pos=.65](CSB);
     \xdef\csslope{\pgfplotstableregressiona}
     \addplot+[
       MediumPurple,
@@ -69,8 +72,8 @@
       ]
       {data/cpp_single_total.csv};
 
-  % CLANG
-  \addplot+[
+    % CLANG
+    \addplot+[
       MediumVioletRed!70!black,
       forget plot,
     ]
@@ -120,7 +123,7 @@
 
     % RUST
     \addplot+[
-      SteelBlue,
+      draw=none,
       forget plot,
     ]
     table [
@@ -130,9 +133,10 @@
         mark=,
       ]
       {data/rust_total.csv}
-    coordinate [pos=0.35] (RA)
-    coordinate [pos=0.45] (RB)
+    coordinate [pos=0] (fRA)
+    coordinate [pos=1.0042] (fRB)
     ;
+    \draw[SteelBlue](fRA) -- (fRB) coordinate[pos=.5](RA) coordinate[pos=.65](RB);
     \xdef\rslope{\pgfplotstableregressiona}
     \addplot+[
       SteelBlue,
@@ -148,6 +152,37 @@
       ]
       {data/rust_total.csv};
 
+    % java
+    \addplot+[
+      draw=none,
+      forget plot,
+    ]
+    table [
+        x=nstos,
+        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
+        col sep=comma,
+        mark=,
+      ]
+      {data/java_total.csv}
+    coordinate [pos=0] (fJA)
+    coordinate [pos=1.001] (fJB)
+    ;
+    \draw[DarkTurquoise](fJA) --(fJB) coordinate[pos=.25](JA) coordinate[pos=.4](JB);
+    \xdef\jslope{\pgfplotstableregressiona}
+    \addplot+[
+      DarkTurquoise,
+      only marks,
+      mark=asterisk,
+      mark size=2.9pt,
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma,
+        header=true,
+      ]
+      {data/java_total.csv};
+
     \begin{pgfonlayer}{fg}
       \draw[SlateGray]
       (CSA) -| (CSB)
@@ -161,6 +196,10 @@
       (CA) -| (CB)
       node [black,pos=0.75,anchor=west]
         {\pgfmathprintnumber[fixed,precision=2]{\cslope}$\frac{Mb}{s}$};
+      \draw[SlateGray]
+      (JA) -| (JB)
+      node [black,pos=0.75,anchor=west]
+        {\pgfmathprintnumber[fixed,precision=2]{\jslope}$\frac{Mb}{s}$};
     \end{pgfonlayer}
   \end{axis}
 \end{tikzpicture}

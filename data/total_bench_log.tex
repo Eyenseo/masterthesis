@@ -1,9 +1,12 @@
 \begin{tikzpicture}
   \begin{loglogaxis}[
-      width=.475\linewidth,
-      enlargelimits=0.05,
+      width=.8\linewidth,
+      height=.3\textheight,
       xlabel = Seconds,
       ylabel = Megabyte,
+      enlargelimits=0.005,
+      ymin=0.00999999999,
+      xmin=0.00999999999,
     ]
     \pgfplotstableset{
       create on use/nstos/.style={
@@ -13,21 +16,6 @@
     }
 
     % GCC
-    \addplot+[
-      MediumVioletRed,
-      forget plot,
-    ]
-    table [
-        x=nstos,
-        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
-        col sep=comma,
-        mark=,
-      ]
-      {data/cpp_total.csv}
-    coordinate [pos=0.5] (CA)
-    coordinate [pos=0.8] (CB)
-    ;
-    \xdef\cslope{\pgfplotstableregressiona}
     \addplot+[
       MediumVioletRed,
       only marks,
@@ -40,22 +28,6 @@
         col sep=comma
       ]
       {data/cpp_total.csv};
-
-    \addplot+[
-      MediumPurple,
-      forget plot,
-    ]
-    table [
-        x=nstos,
-        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
-        col sep=comma,
-        mark=,
-      ]
-      {data/cpp_single_total.csv}
-    coordinate [pos=0.3] (CSA)
-    coordinate [pos=0.4] (CSB)
-    ;
-    \xdef\csslope{\pgfplotstableregressiona}
     \addplot+[
       MediumPurple,
       only marks,
@@ -72,21 +44,6 @@
     % CLANG
     \addplot+[
       MediumVioletRed!70!black,
-      forget plot,
-    ]
-    table [
-        x=nstos,
-        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
-        col sep=comma,
-        mark=,
-      ]
-      {data/cpp_clang_total.csv}
-    coordinate [pos=0.5] (CA)
-    coordinate [pos=0.8] (CB)
-    ;
-    \xdef\cslope{\pgfplotstableregressiona}
-    \addplot+[
-      MediumVioletRed!70!black,
       only marks,
       mark=diamond,
       mark size=2.9pt
@@ -97,22 +54,6 @@
         col sep=comma
       ]
       {data/cpp_clang_total.csv};
-
-    \addplot+[
-      MediumPurple!70!black,
-      forget plot,
-    ]
-    table [
-        x=nstos,
-        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
-        col sep=comma,
-        mark=,
-      ]
-      {data/cpp_clang_single_total.csv}
-    coordinate [pos=0.3] (CSA)
-    coordinate [pos=0.4] (CSB)
-    ;
-    \xdef\csslope{\pgfplotstableregressiona}
     \addplot+[
       MediumPurple!70!black,
       only marks,
@@ -129,21 +70,6 @@
     % RUST
     \addplot+[
       SteelBlue,
-      forget plot,
-    ]
-    table [
-        x=nstos,
-        y={create col/linear regression={y=BtoMb}}, % compute a linear regression from the input table
-        col sep=comma,
-        mark=,
-      ]
-      {data/rust_total.csv}
-    coordinate [pos=0.35] (RA)
-    coordinate [pos=0.45] (RB)
-    ;
-    \xdef\rslope{\pgfplotstableregressiona}
-    \addplot+[
-      SteelBlue,
       only marks,
       mark=o,
       mark size=2.9pt,
@@ -155,5 +81,22 @@
         header=true,
       ]
       {data/rust_total.csv};
+
+    % Java
+    \addplot+[
+      DarkTurquoise,
+      only marks,
+      mark=asterisk,
+      mark size=2.9pt,
+    ]
+    table[
+        x=nstos,
+        y=BtoMb,
+        col sep=comma,
+        header=true,
+      ]
+      {data/java_total.csv};
+
+    \addplot+[black,dashed,mark=none] coordinates {(.001,.01) (100,1000)};
   \end{loglogaxis}
 \end{tikzpicture}
