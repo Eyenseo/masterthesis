@@ -38,7 +38,7 @@ Finally the results will be evaluated through functional and performance tests.
 
 \section{SKilL}\label{sec:skill}
   \gls{skill} encompasses a specification, binary format and tooling for them, that are used to generate code which enables users to serialise data of their software.
-  For this thesis serialization is used for both reading data from files and writing data to files.
+  For this thesis the term \emph{serialization} is used for both reading data from files and writing data to files.
   The next sections will give a brief overview of features, tooling and the intended use of \gls{skill}.
   For more detailed information and rational about design decisions it is advised to refer to \citetitle{skill-tr}\autocite{skill-tr} and \citetitle{skill-dis}\autocite{skill-dis}.
 
@@ -67,7 +67,7 @@ Finally the results will be evaluated through functional and performance tests.
     \end{figure}
 
     \UserTypePools contain \FieldDeclarations that describe fields of \UserTypes.
-    They can't be encoded in the \UserTypePools at generation time, as there can be fields at that time that have not been known at generation time.
+    They can't be encoded in the \UserTypePools at generation time, as there can be fields at runtime that have not been known at generation time.
     Further, fields have to be validated against those in the specification.
     For serialization \FieldDeclarations have to know the \UserTypePools as \UserType fields can have \UserTypes as fields.
     Similarly, they have to know the \StringPool in case a field is of type \String.%
@@ -122,7 +122,7 @@ Finally the results will be evaluated through functional and performance tests.
       \label{img:skilllayout}
       \vspace*{-\baselineskip}
     \end{wrapfigure}
-    As seen in \autoref{img:skilllayout} a \gls{skill} file can consist of multiple blocks.
+    As seen in \autoref{img:skilllayout} a \gls{skill} binary file can consist of multiple blocks.
     Each of these blocks consists of a string section and a type section.
     String sections first list the amount of strings, followed by the lengths of the strings, followed by the strings themselves.
     This layout allows for easy reading and writing of the strings with \cod{mmap}\footnote{
@@ -157,7 +157,7 @@ Finally the results will be evaluated through functional and performance tests.
 
     Generators work with an \gls{ir} that provides all types that have been defined by the user as well as types for the built-in types.
     These type representations are given to the generator in form of a type context which can be queried for different types, e.g.~user types or interfaces.
-    Once the needed lists of type representations is obtained a generator can create the files with the translated type definitions.
+    Once the needed lists of types are obtained a generator can create the files with the translated type definitions.
     Generators have to pay special attention to the escaping of reserved keywords in their target language.
     For that a escaping function can be used that is applied to non literal strings.
 
@@ -177,7 +177,7 @@ Finally the results will be evaluated through functional and performance tests.
 
   The following sections will provide a short introduction to the Rust programming language.
   The focus is on the elements and features that are important to this thesis.
-  For a more in-depth and up to date introduction it is strongly advised to refer to the official documentation~\autocites{rust-org}{rust-doc}{rust-nom}{rust-book}.
+  For a more in-depth and up to date introduction it is strongly advised to refer to the official documentation~\autocites{rust-org}{rust-book}{rust-doc}{rust-nom}.
 
   \subsection{Borrows and Lifetimes}\label{sec:rustBorr}
     At the core of the memory and concurrency goal stands the \emph{borrowing} mechanism.
@@ -197,7 +197,7 @@ Finally the results will be evaluated through functional and performance tests.
     Since the string shall be modified an explicit conversion function has to be called.
     An immutable borrow is taken from \codr{s} in line 3 with the \codr{&} operator.
     The lifetime can be omitted here as the compiler is able to infer it.
-    It is fine to use both \codr{s} and \codr{rs} to call methods that require an immutable borrow on the object.
+    It is fine to use both \codr{s} and \codr{rs} to call methods that require an immutable borrow of the object.
     But, using a method that requires a mutable borrow on \codr{rs} will lead to a compile-time error.
     It might be surprising, but line 8 also leads to a compile-time error.
     Since \codr{s} is borrowed immutable until the end of the scope it doesn't matter that it is a mutable variable.
@@ -229,6 +229,18 @@ Finally the results will be evaluated through functional and performance tests.
     They define a set of functions that have to be implemented by a type that provides a certain \trait.
     Besides \traits, \codr{impl} blocks can be used to add methods to \structs.
 
+    While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally offer.
+    Inheritance is one of the features that differ.
+    It is not possible to inherit from a \struct, \traits however can inherit from each other.
+    \traits can also be implemented for a set of types through type parameters.
+    The set of types that a \trait is generically implemented for can be restricted through a collection of required \traits and lifetimes.
+    These requirements are also called \emph{bounds} and can be seen in line 16 of \autoref{lst:genericsCall}.
+    As a result of the missing inheritance code-reuse can be more difficult if a bound can't be expressed.
+    Such a situation can appear as a bound has to hold for all types, whether all types actually invoke the function doesn't matter.
+    This is in contrast to C++ where only the function invocation triggers the instantiation for it~\autocite[§17.8.1 10]{cpp-iso} which allows more code to be valid.
+    As a solution either composition or code duplication can be used, where the latter can be done through macros for convenience.%
+    ~\autocite[10. Generic Types, Traits, and Lifetimes, 17. Object Oriented Programming Features of Rust]{rust-book}
+
     \LstTikzBox{\genericsBase}[.42\linewidth]{data/generics.rs}[lastline=14]
     \LstTikzBox{\genericsCall}[.42\linewidth]{data/generics.rs}[firstline=16,firstnumber=16]
     \begin{figure}[ht]
@@ -237,18 +249,6 @@ Finally the results will be evaluated through functional and performance tests.
       \subfloat[Generics and Trait Usages]{\usebox{\genericsCall}\label{lst:genericsCall}}
       \caption{Rust Generics and Trait Objects}\label{lst:generics}
     \end{figure}
-
-    While Rust can be thought of as an \gls{oop} language it differs in a few features these languages normally offer.
-    Inheritance is one of the features that differ.
-    It is not possible to inherit from a \struct, \traits however can inherit from each other.
-    \traits can also be implemented for a set of types through type parameters.
-    The set of types that a trait is generically implemented for can be restricted through a collection of required \traits and lifetimes.
-    These requirements are also called \emph{bounds} and can be seen in line 16 of \autoref{lst:genericsCall}.
-    As a result of the missing inheritance code reuse can be more difficult if a bound can't be expressed.
-    Such a situation can appear as a bound has to hold for all types, whether all types actually invoke the function doesn't matter.
-    This is in contrast to C++ where only the function invocation triggers the instantiation for it~\autocite[§17.8.1 10]{cpp-iso} which allows more code to be valid.
-    As a solution either composition or code duplication can be used, where the latter can be done through macros.%
-    ~\autocite[10. Generic Types, Traits, and Lifetimes, 17. Object Oriented Programming Features of Rust]{rust-book}
 
     \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
     The functions \codr{who} take a parameter \codr{&self} which de-sugars to \codr{self: &Pinky} and \codr{self: &Becci}.
@@ -262,7 +262,7 @@ Finally the results will be evaluated through functional and performance tests.
     This can be seen in line 19 of \autoref{lst:genericsCall} where the function expects a trait object of type \codr{Who}.
     Trait objects can be compared to virtual abstract classes in C++.
     This means that method calls can be \emph{dynamically dispatched} -- in other words a virtual function call can be executed for \codr{obj.who()}.
-    Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}\autocites[std::raw::TraitObject]{rust-doc}[Trait Objects]{rust-book1}.
+    Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}\autocites[Trait Objects]{rust-book1}[std::raw::TraitObject]{rust-doc}.
     This can introduce additional slowdown as more cache is needed per object, access is non atomic~\autocite[8.2.3.1 ff.]{intel64and} and moves are more expensive.
 
   \subsection{Errors, Null and Matching}\label{sec:rustErr}
@@ -289,7 +289,7 @@ Finally the results will be evaluated through functional and performance tests.
       \captionsetup{type=lstlisting}
       \subfloat[Rust Error Types]{\usebox{\errorFun}\label{lst:errorFun}} \hfill%
       \subfloat[Ways to Deal with Errors]{\usebox{\errorGun}\label{lst:errorGun}}
-      \caption{Rust Error Mechanics}\label{lst:error}
+      \caption{Rust Error and Matching Mechanics}\label{lst:error}
     \end{figure}
 
     \autoref{lst:errorGun} shows three ways how these wrapped values can be unwrapped through \emph{matching}.
@@ -298,32 +298,32 @@ Finally the results will be evaluated through functional and performance tests.
     But if it is the error value the value will be returned from the \emph{function}.
     The \codr{?} operator is a tool to direct the data flow of possible error results conveniently.
     What the \codr{?} operator does can be roughly seen in the \codr{nun()} function.
-    In \codr{pun} the third way can be seen, where the \OptionT value is moved and if it is \Some it will be matched and accessible through \codr{didi}.
+    In \codr{pun()} the third way can be seen, where the \OptionT value is moved and if it is \Some it will be matched and accessible through \codr{didi}.
     Matching can be found in many aspects of the language and is mostly a convenience feature as functions can be used to unwrap the values as well.%
     ~\autocite[Enums and Pattern Matching]{rust-doc}
 
   \subsection{Cells and Interior Mutability}\label{sec:cell}
     \UnsafeCellT is a wrapper type from Rusts standard library.
     This wrapper allows to change contained data without having to be mutable.
-    In cases where an object contains a \UnsafeCellT there are two mutabilities, interior and exterior.
+    In cases where an object contains \UnsafeCellT there are two mutabilities, interior and exterior.
     In other words: an object that is immutable doesn't deny the modification of a value contained in a \UnsafeCellT.
-    The result is, that code that uses an \UnsafeCellT is vulnerable to most issues that Rust wants to prevent.
+    The result is, that code that uses \UnsafeCellT is vulnerable to most issues that Rust wants to prevent.
     It is in the responsibility of the developer to ensure that the borrowing rules are heeded and that thread safety is guaranteed.%
     ~\autocite[std::cell]{rust-doc}
 
     \LstTikzFig{data/cell.rs}{Example to Interior Mutability}{lst:cell}
 
     In \autoref{lst:cell} an example to interior mutability can be seen.
-    The \struct \Foo contains a \CellT, which uses a \UnsafeCellT internally.
-    The provided interface of \CellT is safe to use and doesn't need \unsafe like \UnsafeCellT does because there is no way for the user to borrow the contained value.
+    The \struct \Foo contains a \CellT, which uses an \UnsafeCellT internally.
+    The provided interface of \CellT is safe to use and doesn't need \unsafe, like \UnsafeCellT does, because there is no way for the user to borrow the contained value.
     In line 7 it is possible to modify the value of \x.
     However, the value of \y in line 8 results in the compiler raising an error.
     The mutability of \x would lead to data races and therefore \CellT and \RefCellT are not marked as thread safe~\autocites[std::cell]{rust-doc}[Send and Sync]{rust-nom}.
 
   \subsection{Visibility and Grouping}
     Visibility in Rust is specified with the \pub keyword.
-    To specify that a field is public to the crate it is prefixed as \codr{pub(crate) foo: String}.
-    Apart from fields and types \pub is also used for modules.
+    For example, to specify that a field is public to the crate it is prefixed as \codr{pub(crate) foo: String}.
+    Apart from types, fields and functions \pub is also used for modules.
     Modules can be compared to Javas packages or C++ namespaces.
     Files themselves are a module and further modules can be declared in files with the \mod keyword.
     This can be used to create a more fine grained grouping and visibility resolution.
@@ -332,16 +332,16 @@ Finally the results will be evaluated through functional and performance tests.
 
 \section{Rust Oddities}
   This section will focus on oddities and questionable design choices that have been encountered while working with Rust.
-  While these are not strictly necessary for the understanding of this thesis, they do provide a deeper understanding of Rust which is helpful to understand the following decisions.
+  While these are not strictly necessary for the understanding of this thesis, they do provide a deeper understanding of Rust which is helpful to understand decisions made throughout the thesis.
 
   \subsection{Immutable File Manipulations}
     A few strange things happen in \autoref{lst:rustfile}.
     The first thing is, that line 8 and 10 do \emph{not} produce the same output.
     \codr{file} is immutable, so why and how can an iterator, created by \codr{bytes(self)}, change the position in the file?
     The how can be explained with interior mutability which was introduced in the previous section.
-    The why however is left open.
+    The why however is left unanswered.
 
-    Also, how can bytes be called by \codr{&file}?
+    Also, how can \codr{bytes(self)} be called by \codr{&file}?
     \codr{&file} creates a reference to an immutable file but \codr{bytes(self)} requires an object.
     The deception lies therein, that \trait \Read is not implemented for \File but for \codr{&'a File}.
     Which means that \self is not an object but a reference to one.
@@ -366,8 +366,8 @@ Finally the results will be evaluated through functional and performance tests.
     \LstTikzFig{data/coercion_2.rs}{Coercion of Traits}{lst:coercionTwo}
 
   \subsection{Immutability Resolution}
-    Rusts immutability is an on off switch, there is no mechanism to define an attribute as immutable.
-    So if an object is passed as immutable nothing can be changed that is not wrapped by an \UnsafeCellT.
+    Rusts immutability is an on/off switch, there is no mechanism to define an attribute as immutable.
+    If an object is passed as immutable nothing can be changed that is not wrapped by an \UnsafeCellT.
     But on the other hand everything can be changed if the object is mutable.
     Coming from a C++ background the lack of the \codc{const} feature reduces the expressiveness.
     To a certain degree it also influences the safety of the program by providing another level of type safety~\autocite[30ff.]{cpp101}.
@@ -375,17 +375,17 @@ Finally the results will be evaluated through functional and performance tests.
 
   \subsection{Static Functions for Traits}
     Implementing a static function for a \trait should not be difficult, but it is.
-    In \autoref{lst:static} two options are shown how-to do it.
+    In \autoref{lst:static} two options are shown how to do it.
 
     The first option involves functions that are implemented for \Foo as well as the two \traits without a \self parameter.
     For the \traits a bound is required that specifies that the \self type (\Self) has to be \Sized, meaning that the size of \Self is known at compile time.
     Because of that bound they can't be called on the \trait itself, as can be seen in line 28.
     Valid calls for this approach can be seen in lines 31 to 33.
 
-    The other option uses an extra \trait that is implemented for the trait that should have the static function available.
+    The other option uses an extra \trait that is implemented for \Foo and the two \traits that should have the static function available.
     In this example the \trait is named \codr{IDs} and the expected call syntax works as demonstrated in lines 35 to 37.
     An alternative for static functions of \traits are top-level functions that are grouped by name or module.
-    This however is just an option in a context that doesn't use type parameters where the \trait should be used.
+    This however is just an option in a context that doesn't use the \trait in type parameters.
 
     \LstTikzBox{\staticOne}[.47\linewidth]{data/static.rs}[lastline=12]
     \LstTikzBox{\staticTwo}[.4\linewidth]{data/static.rs}[firstline=14,firstnumber=14,lastline=25]

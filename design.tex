@@ -4,7 +4,7 @@
 \chapter{Design and Implementation}%
 \vspace*{-1em}
 In \autoref{sec:intro} the basics of \gls{skill} and Rust were explained.
-This section will feature the design and implementation of the common and generated rust code.
+This section will feature the design and implementation of the common and generated Rust code.
 The first sections will present problems that arise from Rusts type system.
 Afterwards the solution for them will be presented.
 These sections are the most elaborate ones as the decisions have far reaching consequences and differ the most from the other implementations.
@@ -207,14 +207,14 @@ The covered parts mostly follow the reference implementations.
     This has a few nice properties.
     The user would be working with types and not trait objects and thus the code would not use virtual functions.
     Further can up casts be performed by returning a borrow to the contained super type, but on the other hand, down casting becomes impossible as the super component has no knowledge about the child component.
-    Since the memory layout of \structs is undefined~\autocite[0079-undefined-struct-layout]{rust-rfc} no assumption about a pointer offset can be made.
+    Since the memory layout of \structs is undefined no assumption about a pointer offset can be made~\autocite[0079-undefined-struct-layout]{rust-rfc}.
     As alternative an option from \autoref{sec:graph} could be used e.g. \codr{Option<Rc<RefCell<T>>>} to create inheritance cycles.
     That would however degrade the usability and require linear time or memory to perform the casts.
 
   \subsection{Inheritance through Traits}\label{sec:magic}
     If a type hierarchy like \autoref{lst:inheritanceJava} has to be realized in Rust another option is to use \traits, which would result in something akin to \autoref{lst:inheritanceTrait}.
-    The `real' types have the suffix \codr{Proper} and the access interfaces have the original type name.
-    This naming scheme improves the usability for the user of the code as the user will most of the time have to use the trait objects.
+    The `real' types have the suffix \codr{Proper} and the access \traits have the original type name.
+    This naming scheme improves the usability for the user of the code as the user will most of the time have to use trait objects.
     While inheritance can be expressed this way it has a few quirks that have to be improved upon.
     \begin{itemize}
       \item Down casting is impossible as there is no cast function or keyword in the language to go from a \trait to a \struct, or to a \trait.
@@ -234,22 +234,22 @@ The covered parts mostly follow the reference implementations.
     In \autoref{sec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \cast function.
     The first field of a trait object is the data pointer to the \struct and copying the pointer is no issue.
     However the second field is more difficult to fill as the correct vtable pointer has to be created.
-    Fortunately, Rust allows the creation of a trait object from a \codr{null} pointer which can be seen in \autoref{lst:nullTraitObject}\autocite[2.2. Exotically Sized Types]{rust-nom}.%
+    Fortunately, Rust allows the creation of a trait object from a \codr{null} pointer which can be seen in \autoref{lst:nullTraitObject}~\autocite[2.2. Exotically Sized Types]{rust-nom}.%
     ~\autocite{rust-digg}
 
     \LstTikzFig{data/nullTraitObject.rs }{Obtaining a VTable from \codr{null}}{lst:nullTraitObject}
 
     \autoref{lst:nullTraitObject} shows how to obtain the vtable pointer.
     There is a \codr{Proper struct} and a \codr{trait Object} that is implemented for \codr{Proper}.
-    Apart from Rust memory layout, where the compiler may reorder and add padding to fields, Rust also supports C-style memory layout with the \codr{#[repr(C)]} annotation.
+    Apart from Rusts memory layout, where the compiler may reorder and add padding to fields, Rust also supports C-style memory layout with the \codr{#[repr(C)]} annotation.
     This is needed for the \TraitObject \struct which allows casting trait objects to it and thereby accessing the two pointers.
     \codr{()} is the \emph{unit type} comparable to \codc{void}\autocites[repr(C)]{rust-nom}[Defining and Instantiating Structs]{rust-book}.
-    In line 14 a \codr{null} pointer is created with the type of \codr{Proper} and then casted to a trait object of type \codr{Object}.
+    In line 13 a \codr{null} pointer is created with the type of \codr{Proper} and then casted to a trait object of type \codr{Object}.
     This trait object is then \codr{transmuted} to a \TraitObject instance.
-    \codr{_} is replaced by the compiler by the type of the parameter.
+    \codr{_} is replaced by the compiler with the type of the parameter.
     Through the interface of \TraitObject the vtable pointer can be accessed easily.
 
-    Once the vtable pointer was obtained the two pointers can be used to create a \TraitObject object.
+    Once the vtable pointer has been obtained the two pointers can be used to create a \TraitObject object.
     This object can be transmuted to a normal trait object as if it was created by the \struct through an implicit cast.
     The last detail for the \cast function would be a way to determine which type to get the vtable from.
     This can be done by either a lookup table realized through an array or a function with conditional branches.
@@ -276,7 +276,7 @@ The covered parts mostly follow the reference implementations.
     The majority of the \PtrT type consists of \RcT and \RefCellT, combined into one cohesive wrapper.
     That means the original source code was copied and combined.
     This was needed as this type is supposed to be able to be castable, meaning that the contained value should be able to represent a \struct or trait object.
-    Without this manual combination the reference counting and mutability state monitoring would inhibit proper casting.
+    Without this manual combination the reference counting and mutability state enforcement would inhibit proper casting.
 
     \LstTikzBox{\ptrStruct}[.42\linewidth]{data/ptrStruct.rs}
     \LstTikzBox{\rcRefCellStruct}[.42\linewidth]{data/rcRefCellStruct.rs}
@@ -293,10 +293,9 @@ The covered parts mostly follow the reference implementations.
     The \codr{PhantomData<T>} is there to provide the compiler with information which \enquote{is used when computing certain safety properties.}\autocite[std::marker::PhantomData]{rust-doc}.
     \RefCellT doesn't need any pointers whatsoever.
     Since there can be many \PtrTs that point to the same data but have a different views\footnote{
-      The data pointer is not so much the problem, but the vtable pointer from trait objects are.
+      The data pointer is not so much the problem, but the vtable pointers from trait objects are.
     } the value can not be shared between the \PtrT instances.
-    The type parameter \T is bound by \codr{?Sized}, which means that \T can be a type of known size, like a \struct.
-    But \T can also be of unknown size, like a dynamic array \codr{[usize]} where \codr{usize} is the unsigned integer as element type~\autocite[std::marker::Sized]{rust-doc}.
+    The type parameter \T is bound by \codr{?Sized}, which means that \T can be a type of known size, like a \struct and \T can also be of unknown size, like a dynamic array \codr{[usize]} where \codr{usize} is the unsigned integer as element type~\autocite[std::marker::Sized]{rust-doc}.
 
   \subsection{Casting with \texttt{Ptr<T>}}
     The implementation of casting for \PtrT uses the trait object casting as well as the C-style memory layout casting that was introduced in \autoref{sec:inheritance}.
@@ -325,7 +324,7 @@ The covered parts mostly follow the reference implementations.
     But, the parallelism benefits can only be gained if the fields of the objects can be serialized in parallel.
     The binary format is designed in such a way that the field data can be read in parallel.
     With a little extra work parallel writing is also possible.
-    To support that kind of parallelism also at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
+    To support that kind of parallelism at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
 
     \PtrT would have to be made from a \ArcT and \RwLockT, instead of \RcT and \RefCellT, to allow for object parallelism.
     Which means that every object access would be behind a mutex and multiple atomic operations~\autocite[std::sync::Arc, std::sync::RwLock]{rust-doc}.
@@ -347,7 +346,7 @@ The covered parts mostly follow the reference implementations.
       The initial version of \PtrT used conditionals to check whether the cast is valid to make or not.
       It would then create the vtable pointer as introduced in \autoref{sec:magic}.
       The conditional logic was contained in a \trait that was implemented by a macro that only needed the valid type names.
-      That made \PtrT reusable as in other projects.
+      That made \PtrT reusable in other projects not related to \gls{skill}.
 
       In an attempt to improve the performance of \cast the final implementation uses a lookup table.
       The lookup table contains the vtable pointers and absence of a pointer indicates an invalid cast.
@@ -364,10 +363,10 @@ The covered parts mostly follow the reference implementations.
       With that it was possible to create a \cast function that only casts a pointer to another pointer -- no support for trait object casts is necessary in the internal code.
       Further were these casts unchecked.
       \HazardPtrT was then applied to internal code that used \PtrT to serialise field data.
-      In performance tests \HazardPtrT was $\times 1.2$ faster than \PtrT.
+      In performance tests the use of \HazardPtrT resulted in a speed up of $\times 1.2$ compared to \PtrT.
 
       \HazardPtrT was not kept however, as its unsafe nature goes strongly against the values that Rust represents.
-      This experiment showed that wrapper types used throughout the code base (\RcT, \RefCellT) do inflict a significant performance penalty.
+      This experiment showed that the wrapper types used throughout the code base (\RcT, \RefCellT) do inflict a significant performance penalty.
       \PtrT instances are used by pools that contain a shared vector of \PtrT instances (\codr{Rc<RefCell<Vec<Ptr<T>>>>}\footnote{
         \codr{Rc<RefCell<Vec<Ptr<T>>>>} $\approx$ \codr{Rc<RefCell<Vec<Rc<RefCell<T>>>>>}
       }) which means that another speedup could be gained if these wrappers were unnecessary.
@@ -379,7 +378,7 @@ The covered parts mostly follow the reference implementations.
   This is the case as the same infrastructure was used and no modifications had to be made to support Rust.
 
   \autoref{fig:archActual} shows the actual architecture of the generated code.
-  Additionally to the relationships seen in the previous, desired architecture this diagram features \emph{traits}, \emph{usage}, if they were generated or not and what kind of type they are.
+  Additionally to the relationships seen in the previous architecture this diagram features \emph{traits}, \emph{usage}, if they were generated or not and what kind of type they are.
   This means that more types and relationships are featured, making this diagram more complicated.
 
   \begin{figure}[H]
@@ -493,14 +492,14 @@ The covered parts mostly follow the reference implementations.
       They also handle the setup of the different chunks that are involved if the file that is read has multiple blocks.
 
   \subsection{VTable-Lookup-Table}
-    As the section name hints the casting for trait objects is implemented through a lookup table that contains the appropriate vtable pointers.
     The lookup table is implemented as a $N \times M$ matrix, where $M$ is the amount of types $+1$ to accommodate the foreign type.
     $N=M+1$ to additionally accommodate the shared \trait \SkillObject.
     The memory footprint could be reduced by using a sparse array at the trade-off for lookup speed.
-    % TODO mention evaluation or implementation for hashmap comparison
     The matrix uses \codr{Option<VTable>} instances as elements -- if the value is \codr{None} the cast is invalid, otherwise the correct vtable is obtained.
     The generator produces the correct vtables with the technique introduced in \autoref{sec:magic}.
-    For the lookup to be efficient all user types as well as \codr{Foreign} and \SkillObject have to be assigned an index into the matrix.
+    For the lookup to be efficient\footnote{
+      \codr{HashMap} was testes as replacement for an array but was found to be inefficient.
+    } all user types as well as \codr{Foreign} and \SkillObject have to be assigned an index into the matrix.
     This is done by the generator and the reason to why there is not a common crate that contains specification independent code.
 
   \subsection{Specification Independent Code}
@@ -538,7 +537,7 @@ The covered parts mostly follow the reference implementations.
 
     \subsubsection{Error and Handling}
       Return codes are the predominant way in Rust to report issue, which was introduced in \autoref{sec:rustErr}.
-      The issue with return codes is that they are unsafe, and that they do not provide a lot of context by themself for debugging purposes.
+      The issue with return codes is that they are unsafe, as they can be ignored, and that they do not provide a lot of context by themself for debugging purposes.
       To improve the usability of these return codes the \codr{failure} crate~\autocite{rust-failure} has been chosen to enhance the error codes.
       The crate provides macros that extend the codes with the option to provide a backtrace.
       Additionally it allows for error messages that are created and formatted at runtime and are able to provide more context than a string literal.

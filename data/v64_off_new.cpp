@@ -1,4 +1,4 @@
-static uint64_t offset(uint64_t v) {
+static uint64_t size(uint64_t v) {
   return (v < 0x80U) ? 1 : ((v < 0x4000U) ? 2
       : ((v < 0x200000U) ? 3 : ((v < 0x10000000U) ? 4
       : ((v < 0x800000000U) ? 5 : ((v < 0x40000000000U) ? 6

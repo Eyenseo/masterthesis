@@ -25,11 +25,11 @@ This means that fields of the objects have to be wrapped by a synchronizing wrap
 The resulting architecture was deemed too inefficient in comparison to a sequential solution.
 
 Apart from the issue with parallelism, inheritance and casting were interesting subjects.
-Rust features inheritance for \traits which are comparable to Javas \codj{interface}s but not for \structs which can be compared to Cs \structs.
+Rust features inheritance for \traits which are comparable to Javas \codj{interface}s but not for \structs which can be compared to C \structs.
 Furthermore, only casts from a \struct to a \trait are possible, not however from a \trait to a \struct or from a \trait to a \trait.
 To allow all casts a method was created that requires the \structs to have a C memory layout.
 The method used a lookup table to check if a cast is valid or not.
-To execute casts to a trait a vtable pointer is necessary, which is also contained in the lookup table.
+To execute casts to a \trait a vtable pointer is necessary, which is also contained in the lookup table.
 
 The performance of Rust bindings is $\times 4.6$ slower than the parallelized C++ version.
 This is due to the missing parallelism and the enforcement of borrow rules at run time.
