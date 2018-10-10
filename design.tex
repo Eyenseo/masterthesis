@@ -342,6 +342,7 @@ The covered parts mostly follow the reference implementations.
     Since \PtrT is used in many components some time was spent to see how it could be made faster.
     The next sections will present optimisations that were thought of.
 
+    \vspace*{-.25em}
     \subsubsection{Lookup vs Conditionals}
       The initial version of \PtrT used conditionals to check whether the cast is valid to make or not.
       It would then create the vtable pointer as introduced in \autoref{sec:magic}.
@@ -353,6 +354,7 @@ The covered parts mostly follow the reference implementations.
       A performance improvement could however not be measured.
       An explanation for that is, that the trait objects are still created and that branch-prediction was in this case roughly as efficient as an access into a 2D array.
 
+      \vspace*{-.25em}
     \subsubsection{Disabling Reference Counting and Borrow Checking}
       A more brutal optimisation was an additional type to \PtrT.
       It was named \HazardPtrT as there was nothing safe about that type.
@@ -367,9 +369,10 @@ The covered parts mostly follow the reference implementations.
 
       \HazardPtrT was not kept however, as its unsafe nature goes strongly against the values that Rust represents.
       This experiment showed that the wrapper types used throughout the code base (\RcT, \RefCellT) do inflict a significant performance penalty.
-      \PtrT instances are used by pools that contain a shared vector of \PtrT instances (\codr{Rc<RefCell<Vec<Ptr<T>>>>}\footnote{
+      \PtrT instances are used by pools that contain a shared vector of \PtrT instances (\codr{Rc<RefCell<Vec<Ptr<T >>>>}\footnote{
         \codr{Rc<RefCell<Vec<Ptr<T>>>>} $\approx$ \codr{Rc<RefCell<Vec<Rc<RefCell<T>>>>>}
       }) which means that another speedup could be gained if these wrappers were unnecessary.
+      \vspace*{-.25em}
 
 \section{Binding Architecture}
   This section will discuss the created architecture of generated bindings and the changes made to the one introduced in \autoref{sec:skillArch}.
