@@ -12,7 +12,7 @@ Lastly the generated code and the resulting architecture will be covered.
 The covered parts mostly follow the reference implementations.
 
 \section{Cyclic Graphs in Rust}\label{sec:graph}
-  \gls{skill} allows the creation of graphs with its references\autocite[9]{skill-dis} as most languages do.
+  \gls{skill} allows the creation of graphs with its references~\autocite[9]{skill-dis} as most languages do.
   This is generally not a problem and sometimes needed to express the required data structure.
   Rust however prevents the creation of cycles with references, which will be demonstrated in the following sections.
   In this section different approaches are explored that produce cyclic graphs in Rust.
@@ -46,11 +46,11 @@ The covered parts mostly follow the reference implementations.
 
   \subsection{Pointers in Rust}
     Coming from a C++ background the next thing that comes to mind would be (raw) pointers.
-    Pointers were not introduced in \autoref{sec:rust} and the reason for that is, that they are not a type commonly used in Rust\autocite[Raw Pointers]{rust-book1}.
+    Pointers were not introduced in \autoref{sec:rust} and the reason for that is, that they are not a type commonly used in Rust~\autocite[Raw Pointers]{rust-book1}.
     In \autoref{lst:pointers} it can be seen why this is the case.
 
     \autoref{lst:pointersOne} shows the basic usage of pointers, also named `raw pointers'.
-    Raw pointers differ from references and smart pointers in the following points\autocite[Unsafe Rust]{rust-book}: Pointers~\ldots
+    Raw pointers differ from references and smart pointers in the following points~\autocite[Unsafe Rust]{rust-book}: Pointers~\ldots
     \begin{itemize}
       \item are allowed to ignore the borrowing rules by having both immutable and mutable pointers or multiple mutable pointers to the same location
       \item aren't guaranteed to point to valid memory
@@ -60,7 +60,7 @@ The covered parts mostly follow the reference implementations.
     A pointer to the \String \codr{s} is assigned to \codr{ps} in line 3.
     In line 6 \codr{s} is accessed through \codr{ps}.
     To do this \codr{unsafe} code is involved.
-    Unsafe code allows the following\autocite[Unsafe Rust]{rust-book}:
+    Unsafe code allows the following~\autocite[Unsafe Rust]{rust-book}:
     \begin{itemize}
       \item Dereference a raw pointer
       \item Call an unsafe function or method
@@ -106,21 +106,23 @@ The covered parts mostly follow the reference implementations.
     If the strong counter reaches zero the destructor of the contained value is called by \RcTs destructor.
     The memory is released once the weak counter reaches zero too.
     This means there is only one memory allocation which leads to better cache locality and this increases speed.
-    But it also means that the memory can only be freed once the last weak pointer is destructed, which might be unwanted.
-    \autocite[std::rc::Rc]{rust-doc}
+    But it also means that the memory can only be freed once the last weak pointer is destructed, which might be unwanted.%
+    ~\autocite[std::rc::Rc]{rust-doc}
 
     The semantics of \RcT are the following.
     It is possible to have any number of \RcTs and \WeakTs to the same \T.
     If there is more than one \RcT or a \WeakT to the same \T it is only possible to access \T in an immutable way.
     Further can \RcT instances be downgraded to \WeakT and if the strong count has not yet reached zero it is possible to upgrade \WeakT instances to \RcT.
-    This means that this approach suffers from the same issue that was encountered in \autoref{sec:memoryArena}.\autocite[std::rc::Rc]{rust-doc}
+    This means that this approach suffers from the same issue that was encountered in \autoref{sec:memoryArena}.%
+    ~\autocite[std::rc::Rc]{rust-doc}
 
     The solution to this issue is to use an additional wrapper \RcRefCellT.
     \RefCellT uses internally \codr{UnsafeCell<T>} and provides the means to enforce the borrowing rules at runtime by using an integer counter.
     When calling \codr{borrow()} or \codr{borrow_mut()} on \RefCellT it will not return a \codr{&T} or \codr{&mut T}, instead \RefT and \RefMutT are returned.
     These wrappers will increment the appropriate counters on construction and decrement them on release.
     If the borrow rules would be violated, by returning a \RefT or \RefMutT, the afore mentioned functions cause a \panic.
-    Alternatively there are \codr{try_*} versions of the functions that return \codr{Result<T, E>}.\autocite[std::cell::RefCell]{rust-doc}
+    Alternatively there are \codr{try_*} versions of the functions that return \codr{Result<T, E>}.%
+    ~\autocite[std::cell::RefCell]{rust-doc}
 
     \LstTikzFig{data/rcrefcell.rs}{Smart Pointer to Cell to Value}{lst:rcrefcell}
 
@@ -133,18 +135,19 @@ The covered parts mostly follow the reference implementations.
     Another solution for graphs is something that is similar to \glspl{ecs}.
     In an \gls{ecs} an `object' is represented through an entity that is an identifier, e.g.~an integer.
     Components contain the data of entities and are stored usually in an indexable, continuous structure.
-    Systems are responsible to use and modify components, based on logic that uses other components and entities.\autocite[209]{sfml}
+    Systems are responsible to use and modify components, based on logic that uses other components and entities.%
+    ~\autocite[209]{sfml}
     The \gls{ecs} pattern provides composition over inheritance as the entity has no information about the systems using it and the assigned components.
-    \glspl{ecs} are most commonly used by game engines as they result in fast code and it is easier to write reusable code with them\autocites[209]{sfml}{ecs-acc-game}{ecs-hash}.
+    \glspl{ecs} are most commonly used by game engines as they result in fast code and it is easier to write reusable code with them~\autocites[209]{sfml}{ecs-acc-game}{ecs-hash}.
 
-    In the rust community \gls{ecs} like structures are in discussion as possible solutions to cycles and graphs\autocites{rust-graph-r4cpp}{rust-graph-leipzig}{rust-graph-niko}{rust-graph-exyr}.
-    An prominent example for an implementation of an \gls{ecs} is the \emph{specs}\autocite{rust-specs} library that is used for a \gls{gui}\autocite{rust-xi} and small engines\autocites{rust-amethyst}{rust-rhusics}.
+    In the rust community \gls{ecs} like structures are in discussion as possible solutions to cycles and graphs~\autocites{rust-graph-r4cpp}{rust-graph-leipzig}{rust-graph-niko}{rust-graph-exyr}.
+    An prominent example for an implementation of an \gls{ecs} is the \emph{specs}\autocite{rust-specs} library that is used for a \gls{gui}\autocite{rust-xi} and small engines~\autocites{rust-amethyst}{rust-rhusics}.
 
     In \citetitle{skill-scala}\autocite{skill-scala} a similar approach to the components of an \gls{ecs} is explored.
     Here each field is stored in a continuous container, one container per field for read objects and one for new ones.
     Through testing of the changed architecture it was found that reading and writing was fast but the access of fields in objects were slower.
-    The reason for that is that the fields are not necessarily close in memory to the proxy objects, leading to cache misses.
-    \autocite{skill-scala}
+    The reason for that is that the fields are not necessarily close in memory to the proxy objects, leading to cache misses.%
+    ~\autocite{skill-scala}
 
     While an \gls{ecs} or the optimisation in \citetitle{skill-scala}\autocite{skill-scala} seems favorable to the previous solutions it was ruled out by supervisor Timm Felden.
     His main argument is that an identifier like an index into a container is worse than a pointer.
@@ -176,7 +179,7 @@ The covered parts mostly follow the reference implementations.
   The need for a reference (\codr{&}) comes from the fact that \codr{B} is just a \trait and can't be instantiated.
   A data pointer to a \struct instance is required to create a trait object of type \codr{B}, seen in line 11.
 
-  \gls{skill} uses single inheritance\autocite{skill-tr} as present in the Java example seen in \autoref{lst:inheritanceJava}.
+  \gls{skill} uses single inheritance~\autocite{skill-tr} as present in the Java example seen in \autoref{lst:inheritanceJava}.
   In this section techniques are explored that can be used to mimic single inheritance in Rust.
 
   \LstTikzBox{\inheritanceOne}[.445\linewidth]{data/inheritance.rs}[lastline=7]
@@ -204,7 +207,7 @@ The covered parts mostly follow the reference implementations.
     This has a few nice properties.
     The user would be working with types and not trait objects and thus the code would not use virtual functions.
     Further can up casts be performed by returning a borrow to the contained super type, but on the other hand, down casting becomes impossible as the super component has no knowledge about the child component.
-    Since the memory layout of \structs is undefined\autocite[0079-undefined-struct-layout]{rust-rfc} no assumption about a pointer offset can be made.
+    Since the memory layout of \structs is undefined~\autocite[0079-undefined-struct-layout]{rust-rfc} no assumption about a pointer offset can be made.
     As alternative an option from \autoref{sec:graph} could be used e.g. \codr{Option<Rc<RefCell<T>>>} to create inheritance cycles.
     That would however degrade the usability and require linear time or memory to perform the casts.
 
@@ -231,8 +234,8 @@ The covered parts mostly follow the reference implementations.
     In \autoref{sec:stg} trait objects were introduced as fat pointer and this property can be abused to implement the \cast function.
     The first field of a trait object is the data pointer to the \struct and copying the pointer is no issue.
     However the second field is more difficult to fill as the correct vtable pointer has to be created.
-    Fortunately, Rust allows the creation of a trait object from a \codr{null} pointer which can be seen in \autoref{lst:nullTraitObject}\autocite[2.2. Exotically Sized Types]{rust-nom}.
-    \autocite{rust-digg}
+    Fortunately, Rust allows the creation of a trait object from a \codr{null} pointer which can be seen in \autoref{lst:nullTraitObject}\autocite[2.2. Exotically Sized Types]{rust-nom}.%
+    ~\autocite{rust-digg}
 
     \LstTikzFig{data/nullTraitObject.rs }{Obtaining a VTable from \codr{null}}{lst:nullTraitObject}
 
@@ -257,7 +260,7 @@ The covered parts mostly follow the reference implementations.
 
   \subsection{C-Style Memory Layout}
     Similarly to the previous section is the C-memory layout used to allow for casts not otherwise possible, like it is shown in \autoref{lst:inheritanceStruct}.
-    The field definitions have to appear in the same order, to create the same memory layout, for all types in a type hierarchy\autocite[repr(C)]{rust-nom}.
+    The field definitions have to appear in the same order, to create the same memory layout, for all types in a type hierarchy~\autocite[repr(C)]{rust-nom}.
     This approach has the issue that functions still wouldn't be inherited and would have to be implemented by the user, repeatedly, for all valid \structs.
     Similarly to the \traits there is an issue with casting if the memory of the \struct is managed by a wrapper type.
     A nice property about this approach is that it fits better in normal Rust code and implicit casts to \codr{traits} can still happen as the proper type is used.
@@ -293,7 +296,7 @@ The covered parts mostly follow the reference implementations.
       The data pointer is not so much the problem, but the vtable pointer from trait objects are.
     } the value can not be shared between the \PtrT instances.
     The type parameter \T is bound by \codr{?Sized}, which means that \T can be a type of known size, like a \struct.
-    But \T can also be of unknown size, like a dynamic array \codr{[usize]} where \codr{usize} is the unsigned integer as element type\autocite[std::marker::Sized]{rust-doc}.
+    But \T can also be of unknown size, like a dynamic array \codr{[usize]} where \codr{usize} is the unsigned integer as element type~\autocite[std::marker::Sized]{rust-doc}.
 
   \subsection{Casting with \texttt{Ptr<T>}}
     The implementation of casting for \PtrT uses the trait object casting as well as the C-style memory layout casting that was introduced in \autoref{sec:inheritance}.
@@ -325,9 +328,10 @@ The covered parts mostly follow the reference implementations.
     To support that kind of parallelism also at a field level, all fields in the objects would have to be enclosed in something like an \UnsafeCellT for interior mutability.
 
     \PtrT would have to be made from a \ArcT and \RwLockT, instead of \RcT and \RefCellT, to allow for object parallelism.
-    Which means that every object access would be behind a mutex and multiple atomic operations\autocite[std::sync::Arc, std::sync::RwLock]{rust-doc}.
+    Which means that every object access would be behind a mutex and multiple atomic operations~\autocite[std::sync::Arc, std::sync::RwLock]{rust-doc}.
     To achieve field parallelism fields have to be wrapped in \UnsafeCellT for interior mutability, since threads are involved that means that either \MutexT or \RwLockT\footnote{
-      \MutexT and \RwLockT are both using \UnsafeCellT internally.\autocite[std::sync::Mutex, std::sync::RwLock]{rust-doc}
+      \MutexT and \RwLockT are both using \UnsafeCellT internally.%
+      ~\autocite[std::sync::Mutex, std::sync::RwLock]{rust-doc}
     } have to be used.
     Leading to possible two mutex locks per field access when serialisation of the value and also for all accesses the users does.
     Apart from the objective to use Rusts \emph{type system} for the thread safety guarantees it is further highly unlikely that the mutex locks do not ruin the performance.
@@ -397,16 +401,16 @@ The covered parts mostly follow the reference implementations.
     Cargo uses a manifest file named \cod{Cargo.toml}.
     In this file the binary or library is described.
     This includes dependencies, build settings, versions, tests configurations and benchmarks configurations.
-    The file is of utmost importance for the user of the generated code as this will allow the easy inclusion in the target project.
-    \autocite[The Manifest Format]{rust-cargo}
+    The file is of utmost importance for the user of the generated code as this will allow the easy inclusion in the target project.%
+    ~\autocite[The Manifest Format]{rust-cargo}
 
     Accompanying there are \cod{mod.rs} and \cod{lib.rs} or \cod{main.rs} files.
     These files regulate the visibility of the different modules -- where each file and folder is a module.
     \cod{mod.rs} files are used in directories to specify the visibility of the contained files as well as to flatten the module hierarchy.
     \cod{lib.rs} or \cod{main.rs} files are at the root of the \cod{src} directory and mark the begin of a library or executable.
     These files allow additionally to specify external crates, enable features and mute warnings.
-    Further can additional modules be declared in the files to allow for fine granular visibility.
-    \autocite[7. Modules]{rust-book}
+    Further can additional modules be declared in the files to allow for fine granular visibility.%
+    ~\autocite[7. Modules]{rust-book}
 
     The \cod{Cargo.toml} and \cod{lib.rs} files are quite easy to generate.
     For \cod{Cargo.toml} only the library name has to be substituted.
@@ -535,7 +539,7 @@ The covered parts mostly follow the reference implementations.
     \subsubsection{Error and Handling}
       Return codes are the predominant way in Rust to report issue, which was introduced in \autoref{sec:rustErr}.
       The issue with return codes is that they are unsafe, and that they do not provide a lot of context by themself for debugging purposes.
-      To improve the usability of these return codes the \codr{failure} crate\autocite{rust-failure} has been chosen to enhance the error codes.
+      To improve the usability of these return codes the \codr{failure} crate~\autocite{rust-failure} has been chosen to enhance the error codes.
       The crate provides macros that extend the codes with the option to provide a backtrace.
       Additionally it allows for error messages that are created and formatted at runtime and are able to provide more context than a string literal.
 

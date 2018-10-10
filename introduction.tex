@@ -4,9 +4,9 @@
 
 \chapter{Introduction}\label{sec:intro}
 This thesis is about the design and implementation of a \gls{skill} generator that targets Rust.
-\gls{skill} is a collection of specifications and tools that enables users to write their applications in their preferred language while offering the ability to serialize the applications state platform and language independently\autocite{skill-tr}.
+\gls{skill} is a collection of specifications and tools that enables users to write their applications in their preferred language while offering the ability to serialize the applications state platform and language independently~\autocite{skill-tr}.
 Language independence is achieved by offering multiple language targets for bindings that are generated from a user provided specification.
-Rust was chosen as it aims to be a new, safer, systems programming language that features a type system that offers thread safety guarantees\autocite{rust-org}.
+Rust was chosen as it aims to be a new, safer, systems programming language that features a type system that offers thread safety guarantees~\autocite{rust-org}.
 These should allow for safe parallelism in the generated bindings.
 As reference implementation C++ was used, but C, Java and Scala were available too.
 This section will present the scope of this thesis and then introduce \gls{skill} and Rust.
@@ -48,8 +48,8 @@ Finally the results will be evaluated through functional and performance tests.
     The specification language was kept simple by providing fundamental types that are building blocks of most, commonly used, languages as well as single inheritance.
     These properties allow users to describe the data structures for a software system in a natural way.
     This specification is then used to generate a binding in a language chosen by the users e.g.~C, C++, Java.
-    With the generated binding users are able to write their implementation in a language that they are most comfortable with, by using the offered \gls{api}.
-    \autocite{skill-tr}
+    With the generated binding users are able to write their implementation in a language that they are most comfortable with, by using the offered \gls{api}.%
+    ~\autocite{skill-tr}
 
   \subsection{Architecture}\label{sec:skillArch}
     \autoref{fig:archDesire} illustrates the fundamental architecture of a \gls{skill} binding.
@@ -57,8 +57,8 @@ Finally the results will be evaluated through functional and performance tests.
     Through \SkillFile instances the user can access a management object, from here on called \StringPool, that is responsible for creating and managing \Strings in such a way that they can be serialised.
     Likewise there are management objects that are responsible for instances of a user defined type, from here on called \UserTypePools.
     These management objects are necessary as the runtime system has to know which objects have to be serialized.
-    For this reason deletion of instances is also handled through these management objects.
-    \autocite[107--112]{skill-dis}
+    For this reason deletion of instances is also handled through these management objects.%
+    ~\autocite[107--112]{skill-dis}
 
     \begin{figure}[ht]
       \centering
@@ -70,14 +70,14 @@ Finally the results will be evaluated through functional and performance tests.
     They can't be encoded in the \UserTypePools at generation time, as there can be fields at that time that have not been known at generation time.
     Further, fields have to be validated against those in the specification.
     For serialization \FieldDeclarations have to know the \UserTypePools as \UserType fields can have \UserTypes as fields.
-    Similarly, they have to know the \StringPool in case a field is of type \String.
-    \autocite[144--148]{skill-dis}
+    Similarly, they have to know the \StringPool in case a field is of type \String.%
+    ~\autocite[144--148]{skill-dis}
 
     The \FileReader is responsible for the creation of the \StringPool, \UserTypePools and \FieldDeclarations.
     While the creation of \UserType instances is handled by \UserTypePools, before the field data is read, \FieldDeclarations are responsible for reading field data.
     This split is done as only \FieldDeclarations can know how to read the data and if the reading can be deferred until the first access or writing of the instance.
-    Furthermore, this two step process potentially allows for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.
-    \autocite[148f.]{skill-dis}
+    Furthermore, this two step process potentially allows for parallelization as all \UserType instances are guaranteed to exist when \FieldDeclarations require them.%
+    ~\autocite[148f.]{skill-dis}
 
   \subsection{Serialization}\label{sec:rwSkill}
     \begin{wrapfigure}{R}{0.4\textwidth}
@@ -134,15 +134,15 @@ Finally the results will be evaluated through functional and performance tests.
     The next section contains the field definitions for the types.
     Similar to inheritance in most other languages, super field definitions are not redefined for the sub types.
     The definition consists of the field name, type of the field, as well as the restrictions.
-    A field definition ends with an offset into the next section where the data of the fields resides.
-    \autocite{skill-tr}
+    A field definition ends with an offset into the next section where the data of the fields resides.%
+    ~\autocite{skill-tr}
 
     All data touched so far is small and fast to read as its size is not influenced by the amount of instances.
     It is mostly relevant to the \gls{skill} runtime system as this information allows it to serialise data.
     The last section contains field data of serialised type instances where data of one field is written contiguously for all instances that have that field.
     The known offsets from the previous sections field declarations and the specific layout of the field data can then be used to skip data with \cod{mmap} to allow for parallelized serialization.
-    This is possible as there is no overlapping write and read access on the instances memory as all instances are created before serialization starts.
-    \autocite{skill-tr}
+    This is possible as there is no overlapping write and read access on the instances memory as all instances are created before serialization starts.%
+    ~\autocite{skill-tr}
 
     The reading and writing  operations themselves are not too different from the other implementations.
     It will not be explained in detail.
@@ -151,7 +151,7 @@ Finally the results will be evaluated through functional and performance tests.
 
   \subsection{Generators}
     The generators are written in Scala and rely on mixins to be easily extensible, and string interpolation for readability.
-    Mixin classes are a kind of inheritance that allows linearisation of subclasses with different super types instead of an inheritance tree\autocite[117f.]{oop-inter}.
+    Mixin classes are a kind of inheritance that allows linearisation of subclasses with different super types instead of an inheritance tree~\autocite[117f.]{oop-inter}.
     Each generator has a \cods{Main} \cods{class} that has various \cods{trait}s mixed in.
     These traits are then responsible for creating a certain set of files.
 
@@ -165,19 +165,19 @@ Finally the results will be evaluated through functional and performance tests.
   The official Rust language website describes the language as:
   \enquote{Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.}\autocite{rust-org}
   It presents itself as a \emph{safe} language that should be considered as a substitute for C, C++ and other systems programming languages.
-  The project especially criticizes the following issues in other languages and intends to solve them\autocite{rust-faq}:
+  The project especially criticizes the following issues in other languages and intends to solve them~\autocite{rust-faq}:
   \begin{enumerate}
     \item There is too little attention paid to safety.
     \item They have poor concurrency support.
     \item There is a lack of practical affordances.
     \item They offer limited control over resources.
   \end{enumerate}
-  But the project doesn't aim to create a completely safe language and instead intends to make compromises in favor of other goals.
-  \autocite{rust-faq}
+  But the project doesn't aim to create a completely safe language and instead intends to make compromises in favor of other goals.%
+  ~\autocite{rust-faq}
 
   The following sections will provide a short introduction to the Rust programming language.
   The focus is on the elements and features that are important to this thesis.
-  For a more in-depth and up to date introduction it is strongly advised to refer to the official documentation\autocites{rust-org}{rust-doc}{rust-nom}{rust-book}.
+  For a more in-depth and up to date introduction it is strongly advised to refer to the official documentation~\autocites{rust-org}{rust-doc}{rust-nom}{rust-book}.
 
   \subsection{Borrows and Lifetimes}\label{sec:rustBorr}
     At the core of the memory and concurrency goal stands the \emph{borrowing} mechanism.
@@ -220,7 +220,7 @@ Finally the results will be evaluated through functional and performance tests.
     Because \codr{s} is freed at the end of the scope in line 9 and the \Foo instance is not, a compilation error is raised.
     Since the memory of \codr{s} was freed an access through \codr{foo.s} could lead to runtime failures.
     It has to be noted that lifetimes can only be applied to borrows and are taken implicitly.
-    In other words they can't be used to chain two instances to each other without using borrows\autocite[PhantomData]{rust-doc}.
+    In other words they can't be used to chain two instances to each other without using borrows~\autocite[PhantomData]{rust-doc}.
 
   \subsection{Structs, Traits and Generics}\label{sec:stg}
     The fundamental pieces of Rusts \gls{oop} model are \structs, \traits and \codr{impl} blocks.
@@ -246,9 +246,9 @@ Finally the results will be evaluated through functional and performance tests.
     These requirements are also called \emph{bounds} and can be seen in line 16 of \autoref{lst:genericsCall}.
     As a result of the missing inheritance code reuse can be more difficult if a bound can't be expressed.
     Such a situation can appear as a bound has to hold for all types, whether all types actually invoke the function doesn't matter.
-    This is in contrast to C++ where only the function invocation triggers the instantiation for it\autocite[§17.8.1 10]{cpp-iso} which allows more code to be valid.
-    As a solution either composition or code duplication can be used, where the latter can be done through macros.
-    \autocite[10. Generic Types, Traits, and Lifetimes, 17. Object Oriented Programming Features of Rust]{rust-book}
+    This is in contrast to C++ where only the function invocation triggers the instantiation for it~\autocite[§17.8.1 10]{cpp-iso} which allows more code to be valid.
+    As a solution either composition or code duplication can be used, where the latter can be done through macros.%
+    ~\autocite[10. Generic Types, Traits, and Lifetimes, 17. Object Oriented Programming Features of Rust]{rust-book}
 
     \autoref{lst:genericsBase} declares a \trait and two \structs that then implement the \trait respectively.
     The functions \codr{who} take a parameter \codr{&self} which de-sugars to \codr{self: &Pinky} and \codr{self: &Becci}.
@@ -263,7 +263,7 @@ Finally the results will be evaluated through functional and performance tests.
     Trait objects can be compared to virtual abstract classes in C++.
     This means that method calls can be \emph{dynamically dispatched} -- in other words a virtual function call can be executed for \codr{obj.who()}.
     Rusts approach to virtual function calls is based on fat pointers \cod{[data_ptr, vtable_ptr]}\autocites[std::raw::TraitObject]{rust-doc}[Trait Objects]{rust-book1}.
-    This can introduce additional slowdown as more cache is needed per object, access is non atomic\autocite[8.2.3.1 ff.]{intel64and} and moves are more expensive.
+    This can introduce additional slowdown as more cache is needed per object, access is non atomic~\autocite[8.2.3.1 ff.]{intel64and} and moves are more expensive.
 
   \subsection{Errors, Null and Matching}\label{sec:rustErr}
     Rust provides two ways to express an error, both can be seen in \autoref{lst:errorFun}.
@@ -275,7 +275,7 @@ Finally the results will be evaluated through functional and performance tests.
     Lastly, there is \codc{panic!}\footnote{%
       The \codr{!} indicates that \codr{panic!} is a macro.
     } which will terminate the program.
-    A panic in Rust can be compared to an exception, as a panic can be caught\autocite[std::panic::catch\_unwind]{rust-doc}.
+    A panic in Rust can be compared to an exception, as a panic can be caught~\autocite[std::panic::catch\_unwind]{rust-doc}.
     This macro is used throughout the standard library e.g.~for an access over the limits of an array.
     But panics are mostly used for `unrecoverable' or unexpected problems, whereas \codr{Result} is used in case an error can be expected, e.g.~\codr{File::open()} returns \codr{Result<File, Error>}.
     Another wrapper type that is used throughout the standard library is \OptionT, seen in the \codr{gun} function.
@@ -299,8 +299,8 @@ Finally the results will be evaluated through functional and performance tests.
     The \codr{?} operator is a tool to direct the data flow of possible error results conveniently.
     What the \codr{?} operator does can be roughly seen in the \codr{nun()} function.
     In \codr{pun} the third way can be seen, where the \OptionT value is moved and if it is \Some it will be matched and accessible through \codr{didi}.
-    Matching can be found in many aspects of the language and is mostly a convenience feature as functions can be used to unwrap the values as well.
-    \autocite[Enums and Pattern Matching]{rust-doc}
+    Matching can be found in many aspects of the language and is mostly a convenience feature as functions can be used to unwrap the values as well.%
+    ~\autocite[Enums and Pattern Matching]{rust-doc}
 
   \subsection{Cells and Interior Mutability}\label{sec:cell}
     \UnsafeCellT is a wrapper type from Rusts standard library.
@@ -308,7 +308,8 @@ Finally the results will be evaluated through functional and performance tests.
     In cases where an object contains a \UnsafeCellT there are two mutabilities, interior and exterior.
     In other words: an object that is immutable doesn't deny the modification of a value contained in a \UnsafeCellT.
     The result is, that code that uses an \UnsafeCellT is vulnerable to most issues that Rust wants to prevent.
-    It is in the responsibility of the developer to ensure that the borrowing rules are heeded and that thread safety is guaranteed.\autocite[std::cell]{rust-doc}
+    It is in the responsibility of the developer to ensure that the borrowing rules are heeded and that thread safety is guaranteed.%
+    ~\autocite[std::cell]{rust-doc}
 
     \LstTikzFig{data/cell.rs}{Example to Interior Mutability}{lst:cell}
 
@@ -317,7 +318,7 @@ Finally the results will be evaluated through functional and performance tests.
     The provided interface of \CellT is safe to use and doesn't need \unsafe like \UnsafeCellT does because there is no way for the user to borrow the contained value.
     In line 7 it is possible to modify the value of \x.
     However, the value of \y in line 8 results in the compiler raising an error.
-    The mutability of \x would lead to data races and therefore \CellT and \RefCellT are not marked as thread safe\autocites[std::cell]{rust-doc}[Send and Sync]{rust-nom}.
+    The mutability of \x would lead to data races and therefore \CellT and \RefCellT are not marked as thread safe~\autocites[std::cell]{rust-doc}[Send and Sync]{rust-nom}.
 
   \subsection{Visibility and Grouping}
     Visibility in Rust is specified with the \pub keyword.
@@ -326,8 +327,8 @@ Finally the results will be evaluated through functional and performance tests.
     Modules can be compared to Javas packages or C++ namespaces.
     Files themselves are a module and further modules can be declared in files with the \mod keyword.
     This can be used to create a more fine grained grouping and visibility resolution.
-    To flatten the module hierarchy, in case that the file module is not wanted, or to create a more convenient user \gls{api} the \use keyword can be used to pull types in another module.
-    \autocite[Visibility and Privacy, Use declarations]{rust-ref}
+    To flatten the module hierarchy, in case that the file module is not wanted, or to create a more convenient user \gls{api} the \use keyword can be used to pull types in another module.%
+    ~\autocite[Visibility and Privacy, Use declarations]{rust-ref}
 
 \section{Rust Oddities}
   This section will focus on oddities and questionable design choices that have been encountered while working with Rust.
@@ -356,7 +357,8 @@ Finally the results will be evaluated through functional and performance tests.
     \autoref{lst:coercionTwo} shows a strange mechanism that is related to coercion.
     Here, \A is inherited by \B and \B and \A are implemented for \Foo.
     Then \codr{x} is borrowed as \codr{&B} and through \codr{rb} the function \fun of \A is called successfully.\footnote{
-      \codr{rb} and \codr{ra} have to be borrows as their size is not known at compile time.\autocite[E0277 referes to 19.4 Advanced Types]{rust-doc}
+      \codr{rb} and \codr{ra} have to be borrows as their size is not known at compile time.%
+      ~\autocite[E0277 referes to 19.4 Advanced Types]{rust-doc}
     }
     But in line 12 the compiler raises an error, informing us that \codr{rb} is not of type \A.
     Furthermore, it is not possible to cast \codr{rb} to \codr{A&} with the \codr{as} keyword, as can be seen in line 13.
@@ -368,7 +370,7 @@ Finally the results will be evaluated through functional and performance tests.
     So if an object is passed as immutable nothing can be changed that is not wrapped by an \UnsafeCellT.
     But on the other hand everything can be changed if the object is mutable.
     Coming from a C++ background the lack of the \codc{const} feature reduces the expressiveness.
-    To a certain degree it also influences the safety of the program by providing another level of type safety\autocite[30ff.]{cpp101}.
+    To a certain degree it also influences the safety of the program by providing another level of type safety~\autocite[30ff.]{cpp101}.
     A workaround is an extra type that wraps the value and only provides immutable accessors.
 
   \subsection{Static Functions for Traits}
@@ -400,8 +402,8 @@ Finally the results will be evaluated through functional and performance tests.
     Lifetimes are needed for the Rust compiler to verify the compliance with the borrow rules, in particular for memory safety.
     The example from \autoref{lst:match} is about the lifetimes of borrows.
     The function \fun accepts a \Foo reference and if \codr{opt} has a value it should be printed and another function should be called.
-    This leads to a compile time error in the current version of Rust.
-    \autocite[2094-nll]{rust-rfc}
+    This leads to a compile time error in the current version of Rust.%
+    ~\autocite[2094-nll]{rust-rfc}
 
     \LstTikzFig{data/match.rs}{Self in Matches}{lst:match}
 
